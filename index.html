@@ -1000,7 +1000,6 @@
         const AUTHORIZED_USERS = ['김현중', '김정욱', '박형삼', '박지영', '권은숙', '최유리', '송요운', '이혜주'];
         const SUPER_ADMINS = ['김현중', '김정욱']; 
         const INPUT_USERS = ['김정욱', '김현중', '박형삼', '박지영', '권은숙', '최유리', '송요운', '이혜주']; 
-        const ADMIN_PW = "04017";
 
         // 유틸리티 함수
         const isTrue = (val) => val === 1 || val === true || val === 'true';
@@ -1827,16 +1826,32 @@
             document.getElementById('btn-show-sidebar').classList.toggle('hidden'); 
         }
 
-        function checkAdmin() { 
+        async function checkAdmin() { 
             const pwInput = document.getElementById('admin-pw');
-            if(pwInput.value.trim() === ADMIN_PW) { 
-                document.getElementById('admin-menu').classList.remove('hidden'); 
-                document.getElementById('admin-login-area').style.display = 'none'; 
-                showToast("✅ 관리자 인증 완료"); 
-            } else { 
-                showToast("⚠️ 비밀번호 불일치", true); 
-                pwInput.value = ""; 
-                pwInput.focus(); 
+            const typedPassword = pwInput.value.trim();
+
+            if(!typedPassword) return showToast("비밀번호를 입력하세요.", true);
+
+            try {
+                // 백엔드에 비밀번호 확인 요청
+                const res = await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=verifyAdmin', {
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: typedPassword })
+                });
+                const result = await res.json();
+
+                if(result.success) { 
+                    document.getElementById('admin-menu').classList.remove('hidden'); 
+                    document.getElementById('admin-login-area').style.display = 'none'; 
+                    showToast("✅ 관리자 인증 완료"); 
+                } else { 
+                    showToast("⚠️ 비밀번호 불일치", true); 
+                    pwInput.value = ""; 
+                    pwInput.focus(); 
+                }
+            } catch(e) {
+                showToast("통신 오류가 발생했습니다.", true);
             }
         }
 
