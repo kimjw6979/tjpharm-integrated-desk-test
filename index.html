@@ -1625,11 +1625,11 @@
                 document.getElementById('alt-target-info').appendChild(loadingBanner);
 
                 try {
-                    const apiKey1 = "RZuGihPu%2F6CrX4SlBMzIx4wHhKMRhzBzkTKPGlBQcoI0g1X%2Bcn%2Fn%2FbHJMiAWH7TwnqqEaKIZfjBnfXVF1o4bLA%3D%3D"; 
-                    const res = await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=syncMfdsData', {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ apiKey1: apiKey1, apiKey2: apiKey1, productCodes: [prod] })
-                    });
+    // API 키 변수를 통째로 삭제했습니다.
+    const res = await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=syncMfdsData', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productCodes: [prod] }) // body에서도 apiKey들을 지웠습니다.
+    });
                     
                     if (res.ok) {
                         const resultData = await res.json();
@@ -1689,17 +1689,14 @@
             btn.disabled = true;
             progressBox.style.display = 'block';
             
-            const apiKey1 = "RZuGihPu%2F6CrX4SlBMzIx4wHhKMRhzBzkTKPGlBQcoI0g1X%2Bcn%2Fn%2FbHJMiAWH7TwnqqEaKIZfjBnfXVF1o4bLA%3D%3D"; 
-            const apiKey2 = "RZuGihPu%2F6CrX4SlBMzIx4wHhKMRhzBzkTKPGlBQcoI0g1X%2Bcn%2Fn%2FbHJMiAWH7TwnqqEaKIZfjBnfXVF1o4bLA%3D%3D"; 
-            
             let currentSyncedCount = etcProducts.filter(p => p.efficacy || p.ingredient).length;
             const totalEtcCount = etcProducts.length;
 
             try {
                 const res = await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=syncMfdsData', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ apiKey1: apiKey1, apiKey2: apiKey2, productCodes: targetProducts })
-                });
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify({ productCodes: targetProducts }) // 여기서도 키를 지워줍니다.
+          });
                 
                 if(res.ok) {
                     const resultData = await res.json();
