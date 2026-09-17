@@ -1,0 +1,3182 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TJPHARM🐿️💊</title>
+    
+    <!-- 폰트: 가독성이 좋은 Pretendard 적용 -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            /* 주문TF 기본 색상 (파랑) */
+            --primary: #2563EB; 
+            --primary-hover: #1D4ED8; 
+            --primary-light: #EFF6FF; 
+            --primary-border: #BFDBFE;
+            
+            /* 약국지정분 강조 색상 (빨강) */
+            --desig-color: #FF4B4B; 
+            --desig-hover: #ff3333; 
+            --desig-light: #fffafb; 
+            --desig-border: #ffcccc;
+
+            /* 품절공지 강조 색상 (초록) */
+            --oos-color: #10B981; 
+            --oos-hover: #059669; 
+            --oos-light: #F0FDF4; 
+            --oos-border: #A7F3D0;
+
+            /* 시즌추천 강조 색상 (보라) */
+            --season-color: #8B5CF6; 
+            --season-hover: #7C3AED; 
+            --season-light: #F5F3FF; 
+            --season-border: #DDD6FE;
+
+            /* 기본 배경 및 텍스트 색상 */
+            --bg: #FFFFFF; 
+            --sec-bg: #F8FAFC; 
+            --text: #1E293B; 
+            --text-light: #64748B; 
+            --border: #E2E8F0;
+            
+            /* 상태 색상 */
+            --success: #10B981; 
+            --warning: #F59E0B; 
+            --danger: #EF4444;
+            --received: #F0FDF4;
+
+            /* 모서리 둥글기 & 그림자 */
+            --radius-sm: 6px; 
+            --radius-md: 10px; 
+            --radius-lg: 16px;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.15), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        body { 
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background-color: var(--sec-bg); 
+            margin: 0; 
+            display: flex; 
+            color: var(--text); 
+            min-height: 100vh;
+            overflow-x: hidden;
+            letter-spacing: -0.01em;
+        }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--sec-bg); }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+        /* 🌟 로그인 스크린 */
+        #login-wrapper {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            background: var(--bg); display: flex; z-index: 9000;
+            transition: opacity 0.4s ease; overflow-y: auto;
+        }
+        .login-image-side {
+            flex: 1; background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: white; padding: 3rem; text-align: center; position: relative; overflow: hidden;
+            transition: background 0.5s ease;
+        }
+        .login-image-side::after {
+            content: ''; position: absolute; width: 800px; height: 800px;
+            background: rgba(255,255,255,0.06); border-radius: 50%; top: -150px; right: -150px;
+        }
+        .login-image-side h1 { 
+            color: white; border: none; padding: 0; font-size: 3.6rem; 
+            margin-bottom: 1rem; z-index: 1; font-weight: 800; letter-spacing: -0.03em; 
+        }
+        .login-image-side p { 
+            color: rgba(255,255,255,0.9); font-size: 1.4rem; z-index: 1; margin: 0; font-weight: 400; 
+        }
+        .login-image-side img { 
+            width: 100%; max-width: 380px; margin-top: 3rem; border-radius: 20px; 
+            box-shadow: var(--shadow-xl); z-index: 1; object-fit: cover; 
+        }
+        .login-form-side { 
+            flex: 1; display: flex; justify-content: center; align-items: center; 
+            background: var(--sec-bg); padding: 2rem; 
+        }
+        .login-form-container { 
+            background: var(--bg); padding: 4.5rem 3.5rem; border-radius: 24px; 
+            box-shadow: var(--shadow-lg); border: 1px solid var(--border); 
+            width: 100%; max-width: 420px; text-align: center; 
+
+            /* 👇 스르르 마법을 위한 4줄 추가! */
+            opacity: 0; 
+            transform: translateY(20px); 
+            transition: all 0.1s ease-out; 
+            pointer-events: none; /* 투명할 때 클릭 방지 */
+        }
+
+        /* 👇 데이터 도착 시 나타나게 할 클래스 추가 */
+        .login-form-container.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        /* Layout */
+        .sidebar { 
+            width: 380px; background-color: var(--bg); padding: 2rem 1.5rem; 
+            border-right: 1px solid var(--border); box-sizing: border-box; 
+            display: flex; flex-direction: column; gap: 1.5rem; 
+            transition: transform 0.3s; box-shadow: 2px 0 10px rgba(0,0,0,0.02); 
+            z-index: 1000; overflow-y: auto;
+        }
+        .main { 
+            flex-grow: 1; padding: 2.5rem 4rem; background: var(--sec-bg); 
+            box-sizing: border-box; overflow-y: auto; transition: width 0.3s ease; 
+        }
+        
+        /* 🌟 통합 탭 UI 스타일 */
+        .tab-container { 
+            display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 1.5rem; 
+            border-bottom: 2px solid var(--border); padding-bottom: 0px; 
+        }
+        .tab-btn { 
+            background: transparent; color: var(--text-light); border: none; 
+            font-size: 1.15rem; font-weight: 700; cursor: pointer; 
+            padding: 12px 20px; border-radius: 12px 12px 0 0; transition: all 0.2s; 
+            box-shadow: none; width: auto; position: relative; bottom: -2px; 
+        }
+        .tab-btn:hover { background: #f1f5f9; color: var(--text); }
+        .tab-btn.active-order { 
+            color: var(--primary); border-bottom: 3px solid var(--primary); 
+            background: white; border-top: 1px solid var(--border); 
+            border-left: 1px solid var(--border); border-right: 1px solid var(--border); 
+        }
+        .tab-btn.active-desig { 
+            color: var(--desig-color); border-bottom: 3px solid var(--desig-color); 
+            background: white; border-top: 1px solid var(--border); 
+            border-left: 1px solid var(--border); border-right: 1px solid var(--border); 
+        }
+        .tab-btn.active-oos { 
+            color: var(--oos-color); border-bottom: 3px solid var(--oos-color); 
+            background: white; border-top: 1px solid var(--border); 
+            border-left: 1px solid var(--border); border-right: 1px solid var(--border); 
+        }
+        .tab-btn.active-season { 
+            color: var(--season-color); border-bottom: 3px solid var(--season-color); 
+            background: white; border-top: 1px solid var(--border); 
+            border-left: 1px solid var(--border); border-right: 1px solid var(--border); 
+        }
+
+        /* Typography & Form Elements */
+        h1 { font-size: 1.8rem; font-weight: 700; margin-top: 0; padding-bottom: 1.2rem; display: flex; justify-content: space-between; align-items: center; color: #0F172A; }
+        h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem; color: #1E293B; }
+        h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem; color: #334155; }
+        p { margin: 0 0 1rem 0; line-height: 1.6; color: var(--text-light); font-size: 0.95rem; }
+        
+        input, select { 
+            width: 100%; padding: 0.9rem 1rem; margin-bottom: 1rem; 
+            border: 1px solid var(--border); border-radius: var(--radius-md); 
+            box-sizing: border-box; font-size: 1rem; background-color: var(--bg); 
+            transition: all 0.2s ease; box-shadow: var(--shadow-sm); 
+            color: var(--text); font-family: inherit; 
+        }
+        input:focus, select:focus, textarea:focus { 
+            outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-border); 
+        }
+        
+        button { 
+            width: 100%; padding: 0.9rem 1rem; background-color: var(--primary); color: white; 
+            border: none; border-radius: var(--radius-md); cursor: pointer; 
+            font-size: 1rem; font-weight: 600; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+            box-shadow: var(--shadow-sm); 
+        }
+        button:hover { background-color: var(--primary-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        button:disabled { background-color: #CBD5E1; cursor: not-allowed; transform: none; box-shadow: none; color: #64748B; }
+        button.secondary { background-color: var(--bg); color: var(--text); border: 1px solid var(--border); }
+        button.secondary:hover { background-color: var(--primary-light); color: var(--primary); border-color: var(--primary-border); }
+        
+        /* 🌟 추가된 모달 및 뱃지용 CSS 🌟 */
+        button.alt-btn { 
+            width: auto; background-color: #8B5CF6; color: white; font-size: 0.75rem; 
+            padding: 4px 8px; border-radius: 6px; font-weight: 700; margin-left: 6px; 
+            box-shadow: none; border: 1px solid #7C3AED; 
+        }
+        button.alt-btn:hover { background-color: #7C3AED; transform: none; }
+        .badge-oos { background: #FEE2E2; color: #B91C1C; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 800; border: 1px solid #FECACA; margin-right: 6px; }
+        .badge-stop { background: #F1F5F9; color: #334155; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 800; border: 1px solid #CBD5E1; margin-right: 6px; }
+        @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
+
+        /* 테마 색상 정의 */
+        .theme-desig input:focus, .theme-desig select:focus, .theme-desig textarea:focus { border-color: var(--desig-color); box-shadow: 0 0 0 3px var(--desig-border); }
+        .theme-desig button:not(.secondary):not(.tab-btn):not(:disabled):not(.alt-btn) { background-color: var(--desig-color); }
+        .theme-desig button:not(.secondary):not(.tab-btn):not(:disabled):not(.alt-btn):hover { background-color: var(--desig-hover); }
+        .theme-desig tbody tr:hover td { background-color: var(--desig-light) !important; }
+        .theme-desig input[type="checkbox"]:checked { background-color: var(--desig-color); border-color: var(--desig-color); }
+
+        .theme-oos input:focus, .theme-oos select:focus { border-color: var(--oos-color); box-shadow: 0 0 0 3px var(--oos-border); }
+        .theme-oos button:not(.secondary):not(.tab-btn):not(:disabled):not(.alt-btn) { background-color: var(--oos-color); }
+        .theme-oos button:not(.secondary):not(.tab-btn):not(:disabled):not(.alt-btn):hover { background-color: var(--oos-hover); }
+        .theme-oos tbody tr:hover td { background-color: var(--oos-light) !important; }
+        .theme-oos input[type="checkbox"]:checked { background-color: var(--oos-color); border-color: var(--oos-color); }
+
+        .theme-season input:focus, .theme-season select:focus { border-color: var(--season-color); box-shadow: 0 0 0 3px var(--season-border); }
+        .theme-season button:not(.secondary):not(.tab-btn):not(:disabled):not(.month-btn):not(.alt-btn) { background-color: var(--season-color); }
+        .theme-season button:not(.secondary):not(.tab-btn):not(:disabled):not(.month-btn):not(.alt-btn):hover { background-color: var(--season-hover); }
+
+        /* 권한설정용 텍스트 토글 스타일 */
+        .perm-checkbox { display: none !important; }
+        .perm-label { 
+            cursor: pointer; padding: 8px 12px; border-radius: 8px; transition: all 0.2s ease; 
+            opacity: 0.35; font-weight: 400; user-select: none; font-size: 0.95rem; 
+            display: inline-flex; align-items: center; justify-content: center; flex: 1; 
+        }
+        .perm-checkbox:checked + .perm-label { opacity: 1; font-weight: 800; background-color: white; box-shadow: var(--shadow-sm); }
+
+        /* 관리자 업로드 카드 */
+        .upload-card { 
+            background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); 
+            padding: 1.2rem 1rem; margin-bottom: 1.2rem; box-shadow: var(--shadow-sm); transition: border-color 0.2s; 
+        }
+        .upload-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
+        .upload-title { font-size: 0.95rem; font-weight: 700; }
+        .file-input { margin-bottom: 0.8rem; box-shadow: none; padding: 0.5rem; font-size: 0.85rem;}
+        .btn-upload { padding: 0.6rem; font-size: 0.9rem; margin-bottom: 0; }
+        .upload-date { color: var(--danger); font-size: 0.8rem; font-weight: 600; }
+
+        /* 🌟 뉴스 드롭다운(아코디언) UI 스타일 🌟 */
+        .news-accordion-container { 
+            background: #FFFFFF; border: 1px solid var(--border); border-radius: var(--radius-md); 
+            margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); overflow: hidden; display: none; 
+        }
+        .news-accordion-header { 
+            padding: 14px 20px; background: #F8FAFC; cursor: pointer; display: flex; 
+            justify-content: space-between; align-items: center; font-weight: 700; color: #334155; 
+            transition: background 0.2s; font-size: 0.95rem;
+        }
+        .news-accordion-header:hover { background: #F1F5F9; color: var(--primary); }
+        .news-accordion-content { 
+            max-height: 0; transition: max-height 0.3s ease-out; overflow: hidden; background: white; 
+        }
+        .news-accordion-container.open .news-accordion-content { 
+            max-height: 600px; overflow-y: auto;
+        }
+        .news-list { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--border); }
+        .news-list li { border-bottom: 1px dashed var(--border); transition: background 0.2s; }
+        .news-list li:last-child { border-bottom: none; }
+        .news-list li:hover { background-color: var(--primary-light); }
+        .news-list a { 
+            display: flex; align-items: center; padding: 12px 20px; color: #1E293B; 
+            text-decoration: none; font-size: 0.95rem; line-height: 1.4;
+        }
+        .news-list a:hover { color: var(--primary-hover); font-weight: 600; text-decoration: underline; }
+        .news-number { 
+            display: inline-block; width: 22px; height: 22px; background: #DBEAFE; color: #1D4ED8; 
+            border-radius: 50%; text-align: center; line-height: 22px; font-size: 0.8rem; 
+            font-weight: 800; margin-right: 12px; flex-shrink: 0;
+        }
+
+        /* Metrics */
+        .metrics { display: flex; gap: 1.2rem; margin: 1rem 0 2rem 0; }
+        .metric-card { 
+            background: var(--bg); padding: 1.5rem; border-radius: var(--radius-lg); flex: 1; 
+            box-shadow: var(--shadow-sm); border: 1px solid var(--border); text-align: center; 
+            position: relative; overflow: hidden; transition: transform 0.2s;
+        }
+        .metric-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+        .metric-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--border); }
+        .metric-card:nth-child(1)::before { background: var(--text-light); } 
+        .metric-card:nth-child(2)::before { background: var(--warning); } 
+        .metric-card:nth-child(3)::before { background: var(--success); } 
+        .metric-card.recv-metric::before { background: var(--primary); } 
+        .metric-title { font-size: 0.95rem; color: var(--text-light); margin-bottom: 0.8rem; font-weight: 600; }
+        .metric-value { font-size: 2.5rem; font-weight: 800; color: var(--text); letter-spacing: -1px;}
+        
+        /* Layout Grids & Table */
+        .form-row { display: grid; gap: 1rem; margin-bottom: 1rem; }
+        .grid-order { grid-template-columns: 2fr 2fr 0.8fr 1.2fr 1fr 2fr; } 
+       .grid-desig { grid-template-columns: 1.5fr 1.5fr 0.8fr 1fr 1.2fr 1fr; }
+        .grid-oos { grid-template-columns: 2fr 1.5fr 1.5fr 2fr 1fr; } 
+        
+        .table-container { 
+            background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); 
+            box-shadow: var(--shadow-sm); overflow-x: auto; margin-bottom: 1rem; 
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; } 
+        th, td { 
+            border-bottom: 1px solid var(--border); padding: 1.2rem 0.8rem; text-align: center; 
+            vertical-align: middle; transition: background-color 0.2s; 
+        }
+        th { color: var(--text-light); font-weight: 700; background: #F8FAFC; position: sticky; top: 0; font-size: 0.8rem; border-bottom: 2px solid var(--border); }
+        tbody tr:hover td { background-color: #EFF6FF !important; }
+        
+        .badge-center { display: inline-block; padding: 0.3rem 0.6rem; border-radius: 6px; font-weight: 700; font-size: 0.85rem; }
+        .badge-pt { background-color: #DBEAFE; color: #1E3A8A; } 
+        .badge-dj { background-color: #D1FAE5; color: #064E3B; } 
+        .badge-bd { background-color: #FEF3C7; color: #78350F; } 
+        .badge-bc { background-color: #FFEDD5; color: #7C2D12; } 
+        .badge-default { background-color: #F1F5F9; color: #475569; }
+        
+        input[type="checkbox"]:not(.perm-checkbox) { 
+            appearance: none; width: 20px; height: 20px; border: 2px solid #CBD5E1; 
+            border-radius: 4px; cursor: pointer; position: relative; background-color: var(--bg); 
+            padding:0; margin:0; transition: all 0.2s;
+        }
+        input[type="checkbox"]:not(.perm-checkbox):checked { background-color: var(--primary); border-color: var(--primary); }
+        input[type="checkbox"]:not(.perm-checkbox):checked::after { 
+            content: '✔'; position: absolute; color: white; font-size: 14px; 
+            top: 50%; left: 50%; transform: translate(-50%, -50%); 
+        }
+        input[type="checkbox"]:not(.perm-checkbox):disabled { background-color: #F1F5F9; border-color: #E2E8F0; cursor: not-allowed; }
+        
+        /* Filter Bar & Info Box */
+        .filter-bar { 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: var(--bg); padding: 1rem 1.5rem; border-radius: var(--radius-md); 
+            margin-bottom: 1.5rem; border: 1px solid var(--border); 
+        }
+        .radio-group { display: inline-flex; background: var(--sec-bg); padding: 4px; border-radius: var(--radius-md); border: 1px solid var(--border); }
+        .radio-group label { 
+            padding: 0.5rem 1rem; cursor: pointer; font-weight: 600; font-size: 0.9rem; 
+            color: var(--text-light); border-radius: var(--radius-sm); margin: 0; 
+            display: flex; align-items: center; gap: 0.4rem; transition: all 0.2s;
+        }
+        .radio-group input[type="radio"] { display: none; }
+        .radio-group input[type="radio"]:checked + label { background: var(--bg); color: #0F172A; font-weight: 700; box-shadow: var(--shadow-sm); }
+        
+        .info-box { 
+            background: var(--primary-light); border-left: 4px solid var(--primary); 
+            padding: 1.2rem; border-radius: 0 var(--radius-md) var(--radius-md) 0; 
+            margin-bottom: 1.5rem; display:flex; justify-content:space-between; align-items:center; 
+        }
+        .info-box p { margin: 0; color: var(--primary-hover); font-weight: 600; font-size: 0.95rem; }
+        .info-box.desig-info { background: #fff5f5; border-left: 4px solid var(--desig-color); } 
+        .info-box.desig-info p { color: var(--desig-hover); }
+        .info-box.oos-info { background: var(--oos-light); border-left: 4px solid var(--oos-color); } 
+        .info-box.oos-info p { color: var(--oos-hover); }
+        .info-box.season-info { background: var(--season-light); border-left: 4px solid var(--season-color); } 
+        .info-box.season-info p { color: var(--season-hover); }
+        
+        /* Expander & Autocomplete & Toast */
+        .expander { border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 1.5rem; overflow: hidden; background: var(--bg); box-shadow: var(--shadow-sm); }
+        .expander-header { background: var(--bg); padding: 1.2rem 1.5rem; cursor: pointer; font-weight: 700; display: flex; justify-content: space-between; color: #334155; border-bottom: 1px solid transparent; }
+        .expander-header:hover { background: var(--sec-bg); }
+        .expander.open .expander-header { border-bottom-color: var(--border); }
+        .expander-content { display: none; }
+        .expander.open .expander-content { display: block; }
+
+        .autocomplete-container { position: relative; width: 100%; }
+        .autocomplete-list { 
+            position: absolute; top: calc(100% + 4px); left: 0; right: 0; 
+            background: var(--bg); border: 1px solid var(--border); z-index: 1000; 
+            max-height: 300px; overflow-y: auto; display: none; box-shadow: var(--shadow-lg); 
+            padding: 0.5rem; margin: 0; list-style: none; border-radius: var(--radius-md); 
+        }
+        .autocomplete-list li { padding: 12px; cursor: pointer; border-radius: var(--radius-sm); font-size: 0.9rem; text-align: left; transition: background 0.1s;}
+        .autocomplete-list li:hover, .autocomplete-active { background-color: var(--primary-light) !important; color: var(--primary-hover); }
+        .theme-desig .autocomplete-list li:hover, .theme-desig .autocomplete-active { background-color: var(--desig-light) !important; color: var(--desig-hover); }
+        .theme-oos .autocomplete-list li:hover, .theme-oos .autocomplete-active { background-color: var(--oos-light) !important; color: var(--oos-hover); }
+        .text-small { color: var(--text-light); font-size: 0.8rem; display: block; margin-top: 4px; }
+
+        .hidden { display: none !important; }
+        .toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; }
+        .toast { 
+            background: #1E293B; color: white; padding: 14px 24px; border-radius: var(--radius-md); 
+            margin-top: 10px; box-shadow: var(--shadow-lg); opacity: 0; 
+            transform: translateY(20px); transition: all 0.3s; font-weight: 500;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        
+        /* 🌟 시즌 추천 탭 전용 초깔끔 다이어트 스타일 🌟 */
+        .month-selector { 
+            display: flex; overflow-x: auto; gap: 8px; padding-bottom: 12px; 
+            margin-bottom: 1rem; border-bottom: 1px solid var(--border); 
+        }
+        .month-selector::-webkit-scrollbar { height: 4px; }
+        .month-btn { 
+            background: transparent; border: 1px solid var(--border); padding: 8px 16px; 
+            border-radius: 20px; color: var(--text-light); font-weight: 700; 
+            cursor: pointer; white-space: nowrap; transition: all 0.2s; 
+        }
+        .month-btn:hover { border-color: var(--season-color); color: var(--season-color); background: var(--season-light); }
+        .month-btn.active { background: var(--season-color); color: white; border-color: var(--season-color); box-shadow: var(--shadow-sm); }
+
+        .season-search-bar { 
+            display: flex; gap: 15px; align-items: center; background: white; 
+            padding: 1rem 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border); 
+            margin-bottom: 1rem; box-shadow: var(--shadow-sm); flex-wrap: wrap; 
+        }
+        .season-search-bar input[type="text"] { margin: 0; flex: 1; min-width: 250px; border-radius: 8px; padding: 0.75rem 1rem; }
+        .season-filter-checks { display: flex; gap: 15px; align-items: center; }
+        .season-filter-checks label { display: flex; align-items: center; gap: 6px; font-weight: 800; color: #8B5CF6; font-size: 0.95rem; background: #F5F3FF; padding: 6px 12px; border-radius: 6px; border: 1px solid #DDD6FE; }
+
+        /* 🌟 가로형 태그 칩 (라디오 버튼 스타일) 🌟 */
+        .season-chip-container { 
+            display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; 
+            background: #FFFFFF; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+        }
+        .season-chip { 
+            width: auto !important; 
+            padding: 8px 18px !important; 
+            border-radius: 20px !important; 
+            border: 1px solid #CBD5E1 !important; 
+            background-color: #F8FAFC !important; 
+            color: #475569 !important; 
+            cursor: pointer; 
+            font-weight: 700 !important; 
+            font-size: 0.95rem !important; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important; 
+            margin: 0 !important; 
+            box-shadow: none !important; 
+        }
+        .season-chip:hover { 
+            background-color: white !important; 
+            border-color: var(--season-color) !important; 
+            color: var(--season-color) !important; 
+            transform: translateY(-1px);
+        }
+        .season-chip.active { 
+            background-color: var(--season-color) !important; 
+            color: white !important; 
+            border-color: var(--season-color) !important; 
+            box-shadow: 0 4px 6px rgba(139, 92, 246, 0.25) !important; 
+        }
+        
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.2rem; margin-bottom: 2rem; }
+        .product-card { 
+            background: white; border-radius: 12px; padding: 1.2rem; border: 1px solid var(--border); 
+            box-shadow: var(--shadow-sm); transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; position: relative;
+        }
+        .product-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--season-border); }
+        
+        .badge-etc { background: #DBEAFE; color: #1D4ED8; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 800; border: 1px solid #BFDBFE;}
+        
+        .product-card-title { font-size: 1.05rem; font-weight: 800; color: #0F172A; margin: 6px 0; word-break: keep-all; line-height: 1.3;}
+        .product-card-codes { font-size: 0.75rem; color: #94A3B8; font-weight: 500; background: #F8FAFC; padding: 4px 6px; border-radius: 4px; display: inline-block; margin-bottom: 8px;}
+        .product-card-ing { font-size: 0.8rem; color: #475569; margin-bottom: 6px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;}
+        .product-card-efcy { background: var(--season-light); color: var(--season-hover); padding: 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-top: auto;}
+
+        /* 관리자 동기화 프로그래스 바 */
+        .sync-progress-box { border: 1px solid #10B981; border-radius: 8px; padding: 15px; margin-top: 15px; display: none; }
+        .sync-bar-bg { width: 100%; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 10px; }
+        .sync-bar-fill { height: 100%; width: 0%; transition: width 0.3s; }
+
+        @media (max-width: 768px) {
+            #login-wrapper { flex-direction: column; overflow-y: auto; height: 100%; position: fixed; }
+            .login-image-side { padding: 2rem 1rem; flex: 0 0 auto; height: auto; min-height: auto; }
+            .login-image-side h1 { font-size: 1.8rem; margin-bottom: 0.3rem;} 
+            .login-image-side p { font-size: 0.9rem; } 
+            .login-image-side img { max-width: 160px; margin-top: 1rem; border-radius: 12px; }
+            .login-form-side { padding: 1.5rem 1rem 3rem 1rem; align-items: flex-start; } 
+            .login-form-container { box-shadow: none; border: none; background: transparent; padding: 0; max-width: 100%; }
+            .main { padding: 1.5rem 1rem; }
+            h1 { font-size: 1.4rem; flex-direction: column; align-items: flex-start; gap: 0.8rem;}
+            .metrics { flex-direction: column; gap: 1rem; }
+            .form-row, .search-grid { grid-template-columns: 1fr; }
+            .filter-bar { flex-direction: column; align-items: stretch; gap: 1rem; background:transparent; border:none; box-shadow:none; padding:0;}
+            .radio-group { flex-direction: column; width: 100%; } 
+            .radio-group label { justify-content: center; }
+            .filter-bar > div { width: 100%; display: flex; flex-direction: column; gap: 0.5rem; }
+            .sidebar { width: 100%; position: fixed; height: 100%; overflow-y: auto; top:0; left:0;}
+            .tab-container { gap: 5px; border-bottom: none; }
+            .tab-btn { border-radius: 8px; border: 1px solid var(--border); flex: 1; text-align: center; padding: 10px; font-size: 1rem;}
+            .season-search-bar { flex-direction: column; align-items: stretch; }
+
+/* 🌟 메인 탭 직접 드래그 앤 드롭 스타일 🌟 */
+        .tab-btn { cursor: grab; }
+        .tab-btn:active { cursor: grabbing; }
+        .tab-btn.dragging { 
+            opacity: 0.6; 
+            transform: scale(0.95); 
+            background: #F1F5F9 !important; 
+            border: 2px dashed #94A3B8 !important; 
+            z-index: 100;
+        }
+
+    /* 🌟 [추가] 이미지 마우스 오버 확대 및 돋보기 효과 스타일 🌟 */
+        .zoom-img-box {
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+        }
+        .zoom-img-box img {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .zoom-img-box:hover img {
+            transform: scale(1.15);
+        }
+        .zoom-img-box::after {
+            content: '🔍+';
+            position: absolute;
+            bottom: 6px;
+            right: 6px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .zoom-img-box:hover::after {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body id="app-body">
+
+    <!-- 사이드바 열기 버튼 -->
+    <button id="btn-show-sidebar" class="hidden" onclick="toggleSidebar()" style="position: fixed; bottom: 30px; left: 30px; width: 56px; height: 56px; border-radius: 50%; background: var(--text); color: white; border: none; font-size: 1.5rem; cursor: pointer; z-index: 1000; box-shadow: var(--shadow-lg); text-align: center; line-height: 56px; padding: 0; transition: transform 0.2s;" title="관리자 메뉴 열기">⚙️</button>
+
+    <!-- 🌟 사이드바 (관리자 메뉴) 🌟 -->
+    <div class="sidebar hidden" id="sidebar">
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <h2 style="margin: 0;">🔒 관리자 메뉴</h2>
+                <button class="secondary" onclick="toggleSidebar()" style="width: auto; padding: 0.4rem 0.8rem; font-size: 0.85rem; margin: 0;">숨기기 ◀</button>
+            </div>
+            <p style="font-size: 0.85rem;">기초 데이터 공유 관리<br>(모든 게시판 통합 적용)</p>
+            
+            <div id="admin-login-area">
+                <input type="password" placeholder="관리자 비밀번호" id="admin-pw" maxlength="5" onkeypress="if(event.key === 'Enter') checkAdmin()">
+                <button onclick="checkAdmin()">인증하기</button>
+            </div>
+        </div>
+        
+        <div id="admin-menu" class="hidden" style="margin-top: 1rem;">
+            <div class="info-box" style="background:#F0FDF4; border-color:var(--success); margin-bottom: 1rem; border-left: 4px solid var(--success);">
+                <p style="color:#047857; font-size: 0.9rem;">✅ 관리자 인증 성공</p>
+            </div>
+            
+            <h3 style="font-size: 1.1rem; margin-top: 1rem; display: flex; align-items: center; gap: 0.4rem;">📚 기초 데이터 업로드</h3>
+            
+            <!-- 상품색인부 카드 -->
+            <div class="upload-card">
+                <div class="upload-card-header">
+                    <span class="upload-title">📦 상품색인부</span>
+                    <span id="date-products" class="upload-date"></span>
+                </div>
+                <input type="file" id="file-products" accept=".xlsx, .xls" class="file-input">
+                <button class="secondary btn-upload" onclick="uploadExcel('products', 'file-products')">상품 데이터 덮어쓰기</button>
+            </div>
+
+            <!-- 전문의약품 스마트 동기화 카드 (수정됨) -->
+            <div class="upload-card" style="border-color: #8B5CF6;">
+                <div class="upload-card-header" style="margin-bottom: 0.4rem;">
+                    <span class="upload-title" style="color: #8B5CF6;">🔄 무인 식약처 동기화</span>
+                </div>
+                <div style="background: #F5F3FF; padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                    <span style="display:inline-block; width:10px; height:10px; background:#10B981; border-radius:50%; animation: pulse 2s infinite;"></span>
+                    <span style="font-size: 0.85rem; font-weight: 700; color: #6D28D9;">24시간 서버 자동 수집 켜짐</span>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.8rem; line-height: 1.4;">
+                    웹 브라우저나 컴퓨터를 꺼도 Cloudflare 서버가 매분 스스로 깨어나서 빈칸 품목의 성분/분류 데이터를 자동으로 채워넣습니다. 
+                </p>
+                <div id="sync-status-text" style="font-size: 0.85rem; color: #6D28D9; margin-bottom: 8px; font-weight: 700;"></div>
+                
+                <button id="btn-sync" onclick="startSyncMfds()" class="secondary" style="font-size: 0.8rem; padding: 0.4rem; color: #6D28D9; border-color: #DDD6FE; width: 100%;">
+                    수동 동기화 15건 즉시 실행 (보조용)
+                </button>
+                
+                <div id="sync-progress-box" class="sync-progress-box" style="border-color: #8B5CF6; background: #F5F3FF;">
+                    <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; color:#6D28D9;">
+                        <span id="sync-title-text">데이터 동기화 진행중...</span>
+                        <span id="sync-text">0 / 0</span>
+                    </div>
+                    <div class="sync-bar-bg" style="background: #DDD6FE;"><div id="sync-bar-fill" class="sync-bar-fill" style="background: #8B5CF6;"></div></div>
+                </div>
+                
+                <button id="btn-reset-sync" onclick="resetSyncData()" class="secondary" style="font-size: 0.8rem; padding: 0.4rem; margin-top: 8px; border-color: #E2E8F0; color: #64748B; width: 100%;">
+                    🗑️ 식약처 동기화 데이터 전체 초기화
+                </button>
+            </div>
+
+            <div class="upload-card">
+                <div class="upload-card-header">
+                    <span class="upload-title">🏢 매입처색인부</span>
+                    <span id="date-suppliers" class="upload-date"></span>
+                </div>
+                <input type="file" id="file-suppliers" accept=".xlsx, .xls" class="file-input">
+                <button class="secondary btn-upload" onclick="uploadExcel('suppliers', 'file-suppliers')">매입처 데이터 덮어쓰기</button>
+            </div>
+            <div class="upload-card">
+                <div class="upload-card-header">
+                    <span class="upload-title">👨‍💼 제약사별담당자</span>
+                    <span id="date-managers" class="upload-date"></span>
+                </div>
+                <input type="file" id="file-managers" accept=".xlsx, .xls" class="file-input">
+                <button class="secondary btn-upload" onclick="uploadExcel('managers', 'file-managers')">담당자 데이터 덮어쓰기</button>
+            </div>
+            <div class="upload-card">
+                <div class="upload-card-header">
+                    <span class="upload-title">🏪 매출처색인부</span>
+                    <span id="date-vendors" class="upload-date"></span>
+                </div>
+                <input type="file" id="file-vendors" accept=".xlsx, .xls" class="file-input">
+                <button class="secondary btn-upload" onclick="uploadExcel('vendors', 'file-vendors')">매출처 데이터 덮어쓰기</button>
+            </div>
+            
+            <hr style="border: 0; border-top: 1px solid var(--border); margin: 1.5rem 0;">
+
+            <h3 style="font-size: 1rem;">👥 사용자 PIN 통합 관리</h3>
+            <button class="secondary" style="margin-bottom: 0.5rem;" onclick="togglePinList()">📋 등록된 사용자 권한 열기/닫기</button>
+            <div id="pin-list-display" class="hidden" style="background: white; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.9rem; margin-bottom: 1rem; max-height: 400px; overflow-y: auto;"></div>
+            
+            <h3 style="font-size: 1rem; margin-top: 1.5rem;">🚨 시스템 초기화</h3>
+            <button style="background-color: #334155; margin-bottom: 0.5rem;" onclick="clearData('clearOrderEntries')">🗑️ 주문 내역 전체 초기화</button>
+            <button style="background-color: #334155; margin-bottom: 0.5rem;" onclick="clearData('clearDesigEntries')">🗑️ 약국지정분 내역 전체 초기화</button>
+            <button style="background-color: #334155; margin-bottom: 0.5rem;" onclick="clearData('clearOutOfStock')">🗑️ 품절 관리 품목 내역 전체 초기화</button>
+        </div>
+    </div>
+
+    <!-- 🌟 로그인 화면 -->
+    <div id="login-wrapper">
+        <div class="login-image-side" id="login-image-bg">
+            <h1>TJPHARM<br>통합 업무 데스크</h1>
+            <p>주문요청 · 약국지정분 · 품절공지 시스템</p>
+            <img src="logo.png" alt="TJ Pharm Logo" onerror="this.style.display='none';">
+        </div>
+        
+        <div class="login-form-side">
+            <div class="login-form-container">
+                <h3 style="font-size:1.5rem; margin-bottom:0.5rem;">🔐 시스템 접속</h3>
+                <p style="margin-bottom: 2.5rem; color: var(--text-light);">개인 접속 PIN <strong>4자리(숫자)</strong>를 입력하세요.</p>
+                <input type="password" id="user-pin" placeholder="예 : 1 2 3 4" maxlength="4" style="text-align: center; font-size: 1.2rem; letter-spacing: 0.8rem; margin-bottom: 1.5rem; padding: 1rem;" onkeypress="if(event.key === 'Enter') login()" disabled>
+<button id="btn-login" onclick="login()" style="padding: 1rem; font-size: 1.1rem; border-radius: 12px; transition: all 0.3s;" disabled>데이터 동기화 중...</button>
+                
+                <div id="register-section" class="hidden" style="margin-top: 2.5rem; text-align: left;">
+                    <div class="info-box" style="border-radius: var(--radius-md); border-left: none; background: #F8FAFC; border: 1px solid var(--border); padding: 1.2rem; margin-bottom: 1rem;">
+                        <p style="color: var(--text); font-weight:400; font-size:0.95rem; line-height: 1.5;">👋 처음 입력하신 PIN 번호입니다.<br>연결할 <strong>본인의 이름</strong>을 등록해주세요.<br><span style="font-size:0.85rem; color:var(--danger); margin-top:0.5rem; display:inline-block; font-weight:600;">※ 관리자 승인 후 접속 가능</span></p>
+                    </div>
+                    <input type="text" id="user-name" placeholder="등록자 이름 입력 (예: 홍길동)">
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="cancelRegister()" class="secondary" style="border-radius: 12px;">취소</button>
+                        <button onclick="registerPin()" style="border-radius: 12px; background-color: #F97316; color: white;">승인 요청하기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌟 [핵심 신규 추가] 대체의약품 검색 모달(팝업) 🌟 -->
+    <div id="alt-modal-overlay" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9998; backdrop-filter:blur(2px);" onclick="closeAltModal()"></div>
+    <div id="alt-modal" class="hidden" style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:800px; max-height:85vh; background:white; z-index:9999; border-radius:16px; box-shadow:var(--shadow-xl); display:flex; flex-direction:column; overflow:hidden;">
+        <div style="padding:20px; background:#F8FAFC; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+            <h2 style="margin:0; font-size:1.3rem; color:var(--primary);">🔄 대체의약품 사내 통합 검색기</h2>
+            <button onclick="closeAltModal()" style="width:auto; padding:5px 15px; background:#CBD5E1; color:white; border-radius:8px;">닫기 ✖</button>
+        </div>
+        <div style="padding:20px; overflow-y:auto; flex:1; background:#F1F5F9;">
+            <div id="alt-target-info" style="background:white; padding:15px; border-radius:12px; margin-bottom:20px; border:1px solid var(--border); box-shadow:var(--shadow-sm);"></div>
+            
+            <h3 style="font-size:1.1rem; color:#059669; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+                💊 1순위: 동일 성분 대체의약품 
+                <span style="font-size:0.8rem; background:#D1FAE5; color:#064E3B; padding:2px 6px; border-radius:4px; font-weight:normal;">성분 100% 일치</span>
+            </h3>
+            <!-- ✅ 수정 후 (index.html) -->
+<div id="alt-group1" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:10px; margin-bottom:30px;"></div>
+            
+            <h3 style="font-size:1.1rem; color:#8B5CF6; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+                📦 2순위: 유사 제형/계열 의약품 
+                <span style="font-size:0.8rem; background:#EDE9FE; color:#5B21B6; padding:2px 6px; border-radius:4px; font-weight:normal;">동일 분류군 (처방변경 제안)</span>
+            </h3>
+            <div id="alt-group2" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:10px;"></div>
+        </div>
+     </div>
+  
+  <!-- 메인 화면 -->
+    <div class="main hidden" id="app-section">
+        
+        <!-- 🌟 탭 메뉴 -->
+        <div class="tab-container" id="main-tab-container">
+            <button id="tab-order" class="tab-btn active-order" onclick="switchTab('order')">📦 주문요청 </button>
+            <button id="tab-desig" class="tab-btn" onclick="switchTab('desig')">🏥 약국지정분 </button>
+            <button id="tab-oos" class="tab-btn" onclick="switchTab('oos')">🚨 제약사품절 </button>
+            <button id="tab-season" class="tab-btn" onclick="switchTab('season')">💡 의약품검색 </button>
+        </div>
+
+        <!-- 🌟 실시간 뉴스 아코디언 드롭다운 🌟 -->
+        <div class="news-accordion-container" id="news-ticker-container">
+            <div class="news-accordion-header" onclick="window.toggleNews()">
+                <span>🚨 최근 7일 제약/품절 실시간 뉴스 보기 (Top 10)</span>
+                <span id="news-toggle-icon">▼</span>
+            </div>
+            <div class="news-accordion-content">
+                <ul class="news-list" id="news-ticker-content">
+                    <li style="padding: 16px 20px; color:#64748B;">최신 뉴스를 불러오는 중입니다...</li>
+                </ul>
+            </div>
+        </div>
+
+      <h1>
+            <span id="board-title-text">📋 티제이팜 주문요청 데스크</span>
+            <div style="display: flex; gap: 10px;">
+                <button id="btn-baro-link" style="display:none; width:auto; padding:0.6rem 1.2rem; font-size:0.9rem; background-color:#F97316; color:white; border:none; border-radius: 8px; box-shadow: var(--shadow-sm);" onclick="window.open('https://www.baropharm.com/trend', '_blank')">🔍검색순위</button>
+                
+                <!-- 🌟 👇 ID 추가 및 기본 숨김(display:none) 처리된 의약품안전나라 버튼 -->
+                <button id="btn-nedrug-link" style="display:none; width:auto; padding:0.6rem 1.2rem; font-size:0.9rem; color:#059669; border-color:#10B981; font-weight:700;" onclick="window.open('https://nedrug.mfds.go.kr/index', '_blank')" class="secondary">🏛️ 의약품안전나라</button>
+                
+                <button onclick="loadAllData()" class="secondary" style="width:auto; padding:0.6rem 1.2rem; font-size:0.9rem;">🔄 새로고침</button>
+            </div>
+        </h1>
+        
+        <div id="info-banner" class="info-box">
+            <p id="welcome-msg"></p>
+            <div style="display: flex; gap: 10px;">
+                                <button onclick="logout()" class="secondary" style="width:auto; padding:0.4rem 1rem; font-size:0.9rem;">로그아웃</button>
+            </div>
+        </div>
+
+        <!-- 🌟 1. 시즌 및 검색 추천 뷰 영역 🌟 -->
+        <div id="season-board-container" style="display: none;">
+            
+            <!-- 상단 1~12월 달력 선택기 -->
+            <div class="month-selector" id="month-selector">
+                <button class="month-btn" onclick="selectMonth(1)">1월</button>
+                <button class="month-btn" onclick="selectMonth(2)">2월</button>
+                <button class="month-btn" onclick="selectMonth(3)">3월</button>
+                <button class="month-btn" onclick="selectMonth(4)">4월</button>
+                <button class="month-btn" onclick="selectMonth(5)">5월</button>
+                <button class="month-btn" onclick="selectMonth(6)">6월</button>
+                <button class="month-btn" onclick="selectMonth(7)">7월</button>
+                <button class="month-btn" onclick="selectMonth(8)">8월</button>
+                <button class="month-btn" onclick="selectMonth(9)">9월</button>
+                <button class="month-btn" onclick="selectMonth(10)">10월</button>
+                <button class="month-btn" onclick="selectMonth(11)">11월</button>
+                <button class="month-btn" onclick="selectMonth(12)">12월</button>
+            </div>
+
+            <!-- 검색 및 필터 박스 -->
+            <div class="season-search-bar">
+                <input type="text" id="season-search-input" placeholder="🔍 TJ코드, 제품명 또는 성분, 식약처 분류명으로 검색..." oninput="executeSeasonFilter()">
+                <!-- ✅ 수정 후 (index.html) -->
+<div class="season-filter-checks">
+    <label style="cursor: default;">
+        <input type="checkbox" checked disabled style="width: 16px; height: 16px; margin: 0; cursor: default;">
+        💊 전문의약품 전용 검색 모드
+    </label>
+</div>
+</div>  <!-- 👈 이 닫는 태그(</div>)를 꼭 한 줄 추가해 주세요!! -->
+
+            <!-- 키워드 칩스 영역 -->
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <span style="font-weight: 700; color: var(--text); font-size: 1rem;" id="current-month-title">X월 타겟 식약처 분류군</span>
+                <span style="font-size: 0.8rem; color: #94A3B8;">
+                    키워드를 클릭하면 즉시 필터링됩니다. 
+                    <span style="margin-left: 8px; color: #64748B; font-weight: 600;">| 🏛️ 데이터 출처: 식품의약품안전처 공공데이터</span>
+                </span>
+            </div>
+            <div class="season-chip-container" id="season-chip-container">
+                <!-- JS 생성 영역 -->
+            </div>
+
+            <div id="season-product-grid" class="product-grid">
+                <!-- 로딩 0초로 즉시 꽂히는 제품 카드 영역 -->
+            </div>
+            
+            <div id="season-empty" style="display: none; text-align: center; padding: 4rem; background: white; border-radius: 16px; border: 1px dashed var(--border);">
+                <span style="font-size: 2rem; display: block; margin-bottom: 1rem;">🍃</span>
+                <h3 style="color: var(--text-light); margin: 0;">해당 조건과 일치하는 대체의약품이 없습니다.</h3>
+            </div>
+        </div>
+            
+        <!-- 🌟 2. 기존 게시판(주문, 지정분, 품절) 뷰 영역 🌟 -->
+        <div id="standard-board-container">
+            <!-- Metrics -->
+            <div class="metrics">
+                <div class="metric-card" id="metric-total-container" style="flex: 1;">
+                    <div class="metric-title">📌 전체 등록</div>
+                    <div class="metric-value" id="m-total">0건</div>
+                </div>
+                <div class="metric-card" id="metric-unchecked-container" style="flex: 1;">
+                    <div class="metric-title">⏳ 미체크(요청)</div>
+                    <div class="metric-value" id="m-unchecked" style="color: var(--warning);">0건</div>
+                </div>
+                <div class="metric-card" id="metric-checked-container" style="flex: 1;">
+                    <div class="metric-title">✅ <span id="metric-check-text">답변완료</span></div>
+                    <div class="metric-value" id="m-checked" style="color: var(--success);">0건</div>
+                </div>
+                <div class="metric-card recv-metric" id="metric-recv-container" style="flex: 1;">
+                    <div class="metric-title">📦 입고완료</div>
+                    <div class="metric-value" id="m-recv" style="color: var(--primary);">0건</div>
+                </div>
+                
+                <div class="metric-card" id="oos-top-suppliers-container" style="display: none; flex: 3.5; text-align: left; padding: 1.2rem;">
+                    <div class="metric-title" style="margin-bottom: 0.8rem;">🏆 매입처별 품절 현황 (Top 10)</div>
+                    <div id="oos-top-suppliers-list" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+                </div>
+            </div>
+
+            <div id="desig-paste-section" style="display: none; background: #fffafb; border: 1px dashed var(--desig-color); border-radius: var(--radius-md); padding: 1.2rem; margin-bottom: 1.5rem;">
+                <div style="font-weight: 700; color: var(--desig-hover); margin-bottom: 0.8rem;">📋 지정분 엑셀 데이터 대량 붙여넣기 (Ctrl+V)</div>
+                <textarea id="paste-area-desig" rows="3" style="width: 100%; padding: 0.8rem; border: 1px solid var(--desig-border); border-radius: 6px; font-size: 0.9rem; margin-bottom: 0.5rem; resize: vertical;" placeholder="엑셀에서 복사한 데이터를 여기에 클릭하고 붙여넣으세요.&#13;&#10;[복사할 기둥 순서] 제품코드 | 거래처코드 | 수량 | 센터 | 구분"></textarea>
+                <button id="btn-paste-desig" onclick="processPastedDesigData()" style="width: auto; background-color: var(--desig-color); padding: 0.6rem 1.5rem;">일괄 자동 등록하기</button>
+            </div>
+
+            <!-- Input Form -->
+            <h3 style="margin-top: 3rem;">✍️ 신규 내역 추가</h3>
+            <p id="form-desc-text">상품, 거래처 정보와 사유(필수)를 입력하세요.</p>
+            
+            <div id="oos-upload-section" style="display: none; background: #F0FDF4; border: 1px dashed #10B981; border-radius: var(--radius-md); padding: 1.2rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-weight: 700; color: #059669;">📥 품절 데이터 엑셀 대량 업로드(.xlsx) </span>
+                        <button onclick="downloadOOSSample()" class="secondary" style="width: auto; padding: 0.3rem 0.8rem; font-size: 0.8rem; margin: 0; border-color: #10B981; color: #059669;">📄 양식 다운로드</button>
+                    </div>
+                    <span style="font-size: 0.85rem; color: #64748B;">최근 업로드: <b id="date-outofstock">-</b></span>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="file" id="file-outofstock" accept=".xlsx, .xls" style="margin: 0; flex: 1; background: white; padding: 0.6rem;">
+                    <button id="btn-upload-outofstock" onclick="uploadExcel('outofstock', 'file-outofstock')" style="width: auto; margin: 0; background-color: #10B981; color: white; border: none; padding: 0.6rem 1.5rem;">엑셀 데이터 덮어쓰기</button>
+                </div>
+            </div>
+
+            <div id="form-row-container" class="form-row grid-order">
+                <div class="autocomplete-container" id="wrap-prod">
+                    <input type="text" id="i-prod" placeholder="📦 상품 검색 또는 없는 제품은 이름 직접 입력" autocomplete="off">
+                    <ul id="i-prod-list" class="autocomplete-list"></ul>
+                </div>
+                
+                <div class="autocomplete-container" id="wrap-vend">
+                    <input type="text" id="i-vend" placeholder="🏪 거래처 검색 (예: 77144)" autocomplete="off">
+                    <ul id="i-vend-list" class="autocomplete-list"></ul>
+                </div>
+                
+                <div id="wrap-qty">
+                    <input type="number" id="i-qty" placeholder="💊 수량" min="1">
+                </div>
+                
+                <div id="wrap-center">
+                    <select id="i-center">
+                        <option value="" disabled selected>🏠 센터 선택</option>
+                        <option value="1 평택">1 평택센터</option>
+                        <option value="2 대전">2 대전센터</option>
+                        <option value="3 분당">3 분당센터</option>
+                        <option value="4 부천">4 부천센터</option>
+                    </select>
+                </div>
+
+                  <!-- 👇 여기부터 복사해서 추가하세요 👇 -->
+                 <div id="wrap-desig-type" style="display: none;">
+                <select id="i-desig-type">
+                <option value="" disabled selected>📑 구분 선택</option>
+                <option value="제약사입고">🏢 제약사입고</option>
+                <option value="재고이동">🚚 재고이동</option>
+            </select>
+       </div>
+                <!-- 👆 여기까지 추가 👆 -->
+                
+                <!-- 품절공지 전용 입력란 -->
+                <div id="wrap-oos-status" style="display: none;">
+                    <input type="text" id="i-oos-status" placeholder="⚠️ 품절여부 (예: 품절)">
+                </div>
+                <div id="wrap-oos-schedule" style="display: none;">
+                    <input type="text" id="i-oos-schedule" placeholder="📅 해지일정 (예: 10월초해지)">
+                </div>
+                <div id="wrap-oos-remark" style="display: none;">
+                    <input type="text" id="i-oos-remark" placeholder="📝 비고 (예: 공급중단예정)">
+                </div>
+
+                <div id="wrap-reg">
+                    <input type="text" id="i-reg" placeholder="🙋 등록자" readonly style="background: var(--sec-bg); color: var(--text-light);">
+                </div>
+                <div id="wrap-reason">
+                    <input type="text" id="i-reason" placeholder="📝 등록 사유 (필수,30자이내)" maxlength="30">
+                </div>
+            </div>
+            <button onclick="addRow()" id="btn-add">➕ 신규 라인 추가</button>
+            
+            <hr style="border: 0; border-top: 1px solid var(--border); margin: 3rem 0;">
+            
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <div class="radio-group" id="filter-radio-group">
+                    <input type="radio" id="f-uncheck" name="filter" value="uncheck" onchange="resetPageAndRender()" checked>
+                    <label for="f-uncheck" id="label-f-uncheck">1️⃣ 미체크</label>
+                    
+                    <input type="radio" id="f-check" name="filter" value="check" onchange="resetPageAndRender()">
+                    <label for="f-check" id="label-f-check">2️⃣ <span id="filter-check-text">답변완료</span></label>
+                    
+                    <span id="filter-recv-wrapper" style="display:flex; align-items:center;">
+                        <input type="radio" id="f-recv" name="filter" value="recv" onchange="resetPageAndRender()">
+                        <label for="f-recv">📦 입고완료</label>
+                    </span>
+                    
+                    <input type="radio" id="f-all" name="filter" value="all" onchange="resetPageAndRender()">
+                    <label for="f-all" id="label-f-all">전체보기</label>
+                    
+                    <input type="radio" id="f-del" name="filter" value="del" onchange="resetPageAndRender()">
+                    <label for="f-del">🗑️ 삭제내역</label>
+                </div>
+                <div style="display:flex; gap:1rem; align-items:center;">
+                    <button class="secondary" style="width: auto; padding: 0.6rem 1rem;" onclick="exportExcel()">📥 엑셀 다운로드</button>
+                    <select id="f-center" onchange="resetPageAndRender()" style="width: auto; margin: 0; padding: 0.6rem 1rem;">
+                        <option value="all">센터(전체)</option>
+                        <option value="평택">1 평택센터</option>
+                        <option value="대전">2 대전센터</option>
+                        <option value="분당">3 분당센터</option>
+                        <option value="부천">4 부천센터</option>
+                    </select>
+                    <select id="f-limit" onchange="resetPageAndRender()" style="width: auto; margin: 0; padding: 0.6rem 1rem;">
+                        <option value="10">10개씩</option>
+                        <option value="25">25개씩</option>
+                        <option value="50" selected>50개씩</option>
+                        <option value="100">100개씩</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Detailed Search Expander -->
+            <div class="expander" id="search-expander">
+                <div class="expander-header" onclick="window.toggleExpander()">
+                    <span>🔍 표 상세 검색 필터</span>
+                    <span id="expander-icon">▶</span>
+                </div>
+                <div class="expander-content">
+                    <div class="search-grid">
+                        <input type="text" id="s-pcode" placeholder="제품코드" oninput="resetPageAndRender()">
+                        <input type="text" id="s-pname" placeholder="제품명" oninput="resetPageAndRender()">
+                        <input type="text" id="s-vcode" placeholder="거래처코드" oninput="resetPageAndRender()">
+                        <input type="text" id="s-vname" placeholder="거래처명" oninput="resetPageAndRender()">
+                        <input type="text" id="s-reg" placeholder="등록자" oninput="resetPageAndRender()">
+                        <input type="text" id="s-comp" placeholder="답변/완료자" oninput="resetPageAndRender()">
+                        <!-- 👇 5번 업데이트: 담당자 검색 칸 추가! -->
+                        <input type="text" id="s-mgr" placeholder="담당자 (예: 김정욱)" oninput="resetPageAndRender()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="table-container">
+                <table id="data-table">
+                    <thead>
+                        <!-- JS 렌더링 영역 -->
+                    </thead>
+                    <tbody>
+                        <!-- JS 렌더링 영역 -->
+                    </tbody>
+                </table>
+                <div id="empty-state" style="padding: 4rem; text-align: center; color: var(--text-light); display: none;">
+                    데이터를 불러오는 중이거나 등록된 내역이 없습니다.
+                </div>
+            </div>
+            <p style="font-size: 0.85rem; margin-top: 1rem;">💡 데이터를 새로 확인하려면 상단의 <b>[🔄 새로고침]</b> 버튼을 누르세요. <b>지정된 담당자</b>만 확인 처리가 가능합니다.</p>
+            
+            <!-- Pagination -->
+            <div class="pagination" style="display: flex; justify-content: center; align-items: center; gap: 1.5rem; margin-top: 2rem; margin-bottom: 3rem;">
+                <button class="secondary" id="btn-prev" onclick="changePage(-1)" style="width: auto; padding: 0.6rem 1.5rem; border-radius: 20px;">◀ 이전</button>
+                <div style="text-align: center;">
+                    <b id="page-info" style="color: var(--text); font-size: 1rem;">1 / 1 페이지</b><br>
+                    <span style="font-size: 13px; color: var(--text-light);" id="total-info">검색된 데이터 총 0건</span>
+                </div>
+                <button class="secondary" id="btn-next" onclick="changePage(1)" style="width: auto; padding: 0.6rem 1.5rem; border-radius: 20px;">다음 ▶</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        // 전역 변수 설정
+        let vendorsData = []; 
+        let productsData = []; 
+        let suppliersData = []; 
+        let managersData = []; 
+        let outOfStockData = []; 
+        let entries = []; 
+        let pins = [];
+        
+        let currentUser = ""; 
+        let currentPin = ""; 
+        let currentPage = 1; 
+        let currentTab = 'order'; 
+        let autoRefreshTimer = null; 
+        let selectedProductIsOOS = false; 
+        
+        let activeMonth = new Date().getMonth() + 1; 
+        let activeKeywordChip = "";
+
+        const AUTHORIZED_USERS = ['김현중', '김정욱', '박형삼', '박지영', '권은숙', '최유리', '송요운', '이혜주'];
+        const SUPER_ADMINS = ['김현중', '김정욱']; 
+        const INPUT_USERS = ['김정욱', '김현중', '박형삼', '박지영', '권은숙', '최유리', '송요운', '이혜주']; 
+        const ADMIN_PW = "04017";
+
+        // 유틸리티 함수
+        const isTrue = (val) => val === 1 || val === true || val === 'true';
+        function formatCode3(code) { 
+            return code && /^\d+$/.test(code.trim()) ? code.trim().padStart(3, '0') : (code || ""); 
+        }
+        function cleanCompanyName(name) { 
+            return name ? name.replace(/\(주\)/g, '').replace(/\(유\)/g, '').replace(/주식회사/g, '').trim() : ""; 
+        }
+
+        window.toggleExpander = function() { 
+            const exp = document.getElementById('search-expander'); 
+            exp.classList.toggle('open'); 
+            const icon = document.getElementById('expander-icon'); 
+            if(icon) icon.innerText = exp.classList.contains('open') ? '▼' : '▶'; 
+        };
+
+        function isExpired(scheduleStr) {
+            if (!scheduleStr) return false; 
+            const str = String(scheduleStr).trim(); 
+            if (str === '-' || str.includes('미정') || str.includes('없음')) return false;
+            
+            const now = new Date(); 
+            let year = now.getFullYear(); 
+            let month = now.getMonth() + 1; 
+            
+            const yearMatch = str.match(/(\d+)년/); 
+            if (yearMatch) { 
+                let y = parseInt(yearMatch[1], 10); 
+                year = y < 100 ? 2000 + y : y; 
+            }
+            
+            const monthMatch = str.match(/(\d+)월/); 
+            if (!monthMatch) return false; 
+            let parsedMonth = parseInt(monthMatch[1], 10);
+            
+            let parsedDay = 31; 
+            if (str.includes('초')) parsedDay = 10; 
+            else if (str.includes('중순')) parsedDay = 20; 
+            else if (str.includes('말')) parsedDay = 31; 
+            
+            const targetDate = new Date(year, parsedMonth - 1, parsedDay, 23, 59, 59); 
+            return now > targetDate;
+        }
+
+        // 🌟 [핵심 수정] 엑셀이든 수기 입력이든 코기만 일치하면 완벽하게 품절로 인식하는 통합 스캐너
+        function getOOSInfo(pCode) {
+            if (!pCode) return null;
+            const targetCode = String(pCode).trim().padStart(6, '0');
+
+            // 1. 수기 입력된 품절 내역 확인 (삭제되지 않은 것)
+            const manualOos = entries.find(e => e.boardType === 'oos' && String(e.pCode).trim().padStart(6, '0') === targetCode && !isTrue(e.del));
+            if (manualOos) {
+                return { status: manualOos.vCode || "품절", schedule: manualOos.vName || "미정", remark: manualOos.regReason || "" };
+            }
+
+            // 2. 엑셀 업로드된 품절 내역 확인 (단, 수동으로 삭제 숨김 처리된 것은 제외)
+            const isDeletedExcel = entries.find(e => e.boardType === 'oos_del' && String(e.pCode).trim().padStart(6, '0') === targetCode && isTrue(e.del));
+            if (!isDeletedExcel) {
+                const excelOos = outOfStockData.find(o => String(o.code).trim().padStart(6, '0') === targetCode);
+                if (excelOos) {
+                    return { status: excelOos.status || "품절", schedule: excelOos.schedule || "미정", remark: excelOos.remark || "" };
+                }
+            }
+
+            return null;
+        }
+
+        // 뱃지 생성 함수도 통합 스캐너를 바라보도록 수정
+        function getOOSBadgeHTML(pCode) {
+            const oosInfo = getOOSInfo(pCode);
+            if (!oosInfo) return "";
+            
+            const rawStatus = (oosInfo.status || "품절").trim(); 
+            if (rawStatus.includes("중단")) {
+                return `<span class="badge-stop" title="해지일정: ${oosInfo.schedule||'없음'}">⚫ 공급중단</span>`;
+            }
+            return `<span class="badge-oos" title="해지일정: ${oosInfo.schedule||'미정'}">🚨 제약사품절</span>`;
+        }
+
+        window.downloadOOSSample = function() { 
+            const wb = XLSX.utils.book_new(); 
+            const sampleData = [ 
+                ["코드", "제품명", "규격", "품절여부", "해지일정여부", "비고"], 
+                ["002612", "", "", "품절", "예: 10월초해지", "예: 공급중단예정"] 
+            ]; 
+            const ws = XLSX.utils.aoa_to_sheet(sampleData); 
+            XLSX.utils.book_append_sheet(wb, ws, "품절공지_업로드양식"); 
+            XLSX.writeFile(wb, "품절공지_업로드양식.xlsx"); 
+            showToast("📥 엑셀 업로드 양식 다운로드 완료"); 
+        };
+
+      window.addEventListener('load', () => { 
+            // 창은 즉시 보여줍니다.
+            const loginForm = document.querySelector('.login-form-container');
+            if (loginForm) loginForm.classList.add('show');
+            
+            loadAllData(true); 
+        });
+
+        // 🌟 탭 전환 로직 🌟
+        function switchTab(tab) {
+            currentTab = tab;
+            const isOrder = (tab === 'order'); 
+            const isDesig = (tab === 'desig'); 
+            const isOos = (tab === 'oos'); 
+            const isSeason = (tab === 'season');
+            
+            const body = document.getElementById('app-body');
+            body.classList.remove('theme-desig', 'theme-oos', 'theme-season');
+            
+            if (isDesig) body.classList.add('theme-desig'); 
+            else if (isOos) body.classList.add('theme-oos'); 
+            else if (isSeason) body.classList.add('theme-season');
+
+            const bg = document.getElementById('login-image-bg');
+            if(bg) {
+                if (isOrder) bg.style.background = 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)';
+                else if (isDesig) bg.style.background = 'linear-gradient(to bottom, #1ebbd7 0%, #d769ac 100%)';
+                else if (isOos) bg.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+                else if (isSeason) bg.style.background = 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)';
+            }
+
+            document.getElementById('tab-order').className = isOrder ? 'tab-btn active-order' : 'tab-btn';
+            document.getElementById('tab-desig').className = isDesig ? 'tab-btn active-desig' : 'tab-btn';
+            document.getElementById('tab-oos').className = isOos ? 'tab-btn active-oos' : 'tab-btn';
+            document.getElementById('tab-season').className = isSeason ? 'tab-btn active-season' : 'tab-btn';
+            
+            let title = '📋 티제이팜 주문요청 데스크'; 
+            let desc = '상품, 거래처 정보와 사유(필수)를 입력하세요.'; 
+            let checkText = '답변완료'; 
+            let addBtnText = '➕ 신규 주문 라인 추가'; 
+            let infoClass = 'info-box';
+            
+            if (isDesig) { 
+                title = '🏥 티제이팜 약국지정분 데스크'; 
+                desc = '상품과 거래처 칸에 코드나 이름을 입력하세요.'; 
+                checkText = '완료됨'; 
+                addBtnText = '➕ 신규 지정분 라인 추가'; 
+                infoClass = 'info-box desig-info'; 
+            } else if (isOos) { 
+                title = '🚨 티제이팜 제약사품절 공지'; 
+                desc = '상품을 검색하고 품절 상태 및 일정을 입력하세요.'; 
+                checkText = '확인완료'; 
+                addBtnText = '➕ 신규 품절 라인 추가'; 
+                infoClass = 'info-box oos-info'; 
+            } else if (isSeason) { 
+                title = '💡 시즌 및 전문의약품 검색'; 
+                infoClass = 'info-box season-info'; 
+            }
+
+            document.getElementById('board-title-text').innerText = title;
+            document.getElementById('info-banner').className = infoClass;
+            
+            const newsTicker = document.getElementById('news-ticker-container'); 
+            if (newsTicker) newsTicker.style.display = isOos ? 'block' : 'none';
+            
+            // 🌟 바로팜 트렌드 버튼도 품절(oos) 탭에서만 보이게 설정 🌟
+            const baroBtn = document.getElementById('btn-baro-link');
+            if (baroBtn) baroBtn.style.display = isOos ? 'inline-block' : 'none';
+
+            // 🌟 👇 [여기에 추가!] 의약품안전나라 버튼은 제품검색(season) 탭에서만 보이게 설정 🌟
+            const nedrugBtn = document.getElementById('btn-nedrug-link');
+            if (nedrugBtn) nedrugBtn.style.display = isSeason ? 'inline-block' : 'none';
+
+            if (isSeason) {
+                document.getElementById('standard-board-container').style.display = 'none';
+                document.getElementById('season-board-container').style.display = 'block';
+                selectMonth(activeMonth); 
+                return;
+            } else {
+                document.getElementById('standard-board-container').style.display = 'block';
+                document.getElementById('season-board-container').style.display = 'none';
+            }
+
+            document.getElementById('form-desc-text').innerText = desc; 
+            document.getElementById('metric-check-text').innerText = checkText; 
+            document.getElementById('filter-check-text').innerText = checkText;
+            
+            document.getElementById('metric-unchecked-container').style.display = isOos ? 'none' : 'block'; 
+            document.getElementById('metric-checked-container').style.display = isOos ? 'none' : 'block';
+
+            const labelUncheck = document.getElementById('label-f-uncheck'); 
+            const labelCheck = document.getElementById('label-f-check');
+            if (isOos) {
+                if (labelUncheck) labelUncheck.style.display = 'none'; 
+                if (labelCheck) labelCheck.style.display = 'none';
+                if (document.getElementById('f-uncheck').checked || document.getElementById('f-check').checked || document.getElementById('f-recv').checked) {
+                    document.getElementById('f-all').checked = true; 
+                }
+            } else {
+                if (labelUncheck) labelUncheck.style.display = 'flex'; 
+                if (labelCheck) labelCheck.style.display = 'flex';
+            }
+
+            const canInput = isOrder || INPUT_USERS.includes(currentUser) || SUPER_ADMINS.includes(currentUser);
+            const btnAdd = document.getElementById('btn-add'); 
+            const oosUploadSec = document.getElementById('oos-upload-section'); 
+            const desigPasteSec = document.getElementById('desig-paste-section'); 
+            
+            if (canInput) { 
+                btnAdd.disabled = false; 
+                btnAdd.innerText = addBtnText; 
+                oosUploadSec.style.display = isOos ? 'block' : 'none'; 
+                desigPasteSec.style.display = isDesig ? 'block' : 'none'; 
+                if (isDesig) document.getElementById('btn-paste-desig').disabled = false; 
+            } else { 
+                btnAdd.disabled = true; 
+                btnAdd.innerText = '🚫 작성 권한이 없습니다'; 
+                oosUploadSec.style.display = 'none'; 
+                desigPasteSec.style.display = 'none'; 
+            }
+
+            document.getElementById('wrap-vend').style.display = isOos ? 'none' : 'block'; 
+            document.getElementById('wrap-qty').style.display = isOos ? 'none' : 'block'; 
+            document.getElementById('wrap-center').style.display = isOos ? 'none' : 'block'; 
+            document.getElementById('wrap-reason').style.display = isOrder ? 'block' : 'none';
+            document.getElementById('wrap-desig-type').style.display = isDesig ? 'block' : 'none'; // 👈 이 줄 추가
+            document.getElementById('wrap-oos-status').style.display = isOos ? 'block' : 'none'; 
+            document.getElementById('wrap-oos-schedule').style.display = isOos ? 'block' : 'none'; 
+            document.getElementById('wrap-oos-remark').style.display = isOos ? 'block' : 'none';
+            document.getElementById('s-vcode').placeholder = isOos ? "품절여부" : "거래처코드"; 
+            document.getElementById('s-vname').placeholder = isOos ? "해지일정/비고" : "거래처명";
+            
+            // 👇 4번 보완: 주문요청 탭에서만 신제품 수기입력 안내 문구 띄우기
+            document.getElementById('i-prod').placeholder = isOrder ? "📦 상품 검색 또는 없는 제품은 이름 직접 입력" : "📦 상품 검색 (예: 002612)";
+
+            if (isOrder) document.getElementById('form-row-container').className = 'form-row grid-order'; 
+            else if (isDesig) document.getElementById('form-row-container').className = 'form-row grid-desig'; 
+            else document.getElementById('form-row-container').className = 'form-row grid-oos';
+            
+            document.getElementById('metric-recv-container').style.display = isOrder ? 'block' : 'none'; 
+            document.getElementById('filter-recv-wrapper').style.display = isOrder ? 'flex' : 'none';
+
+            // 🌟 👇 [핵심 추가] 품절(oos) 탭이 아닐 때는 무조건 '미체크' 라디오 버튼을 강제로 선택하게 만듭니다!
+            if (!isOos) {
+                document.getElementById('f-uncheck').checked = true;
+            }
+
+            const thead = document.querySelector('#data-table thead');
+            if (isOrder) {
+                // 🌟 주문요청 탭: '상태' -> '✅ 답변' 으로 변경
+                thead.innerHTML = `<tr><th style="white-space:nowrap; min-width:65px;">🗑️ 삭제</th><th style="white-space:nowrap; min-width:50px;">✅ 답변</th><th style="white-space:nowrap; min-width:50px;">입고</th><th style="white-space:nowrap;">매입처</th><th style="white-space:nowrap;">제품코드</th><th style="min-width:180px;">제품명</th><th style="white-space:nowrap;">규격</th><th style="white-space:nowrap; min-width:50px;">수량</th><th style="white-space:nowrap;">거래처코드</th><th style="min-width:120px;">거래처명</th><th style="white-space:nowrap;">센터</th><th style="white-space:nowrap;">등록자</th><th style="min-width:100px;">등록사유</th><th style="white-space:nowrap;">등록일시</th><th style="white-space:nowrap;">담당자<br>답변자</th><th style="min-width:160px;">비고(사유)</th></tr>`;
+            } else if (isDesig) {
+    // 🌟 약국지정분 탭: '✅ 완료' 옆에 '구분' 추가
+    thead.innerHTML = `<tr><th style="white-space:nowrap; min-width:65px;">🗑️ 삭제</th><th style="white-space:nowrap; min-width:50px;">✅ 완료</th><th style="white-space:nowrap;">구분</th><th style="white-space:nowrap;">제품코드</th><th style="min-width:180px;">제품명</th><th style="white-space:nowrap;">규격</th><th style="white-space:nowrap; min-width:50px;">수량</th><th style="white-space:nowrap;">거래처코드</th><th style="min-width:120px;">거래처명</th><th style="white-space:nowrap;">센터</th><th style="white-space:nowrap;">등록자</th><th style="white-space:nowrap;">등록일시</th><th style="white-space:nowrap;">완료자</th></tr>`;
+            } else {
+                thead.innerHTML = `<tr><th style="white-space:nowrap; min-width:65px;">🗑️ 삭제</th><th style="white-space:nowrap;">매입처</th><th style="white-space:nowrap;">코드</th><th style="min-width:180px;">제품명</th><th style="white-space:nowrap;">규격</th><th style="white-space:nowrap;">품절여부</th><th style="white-space:nowrap;">해지일정여부</th><th style="min-width:160px;">비고</th><th style="white-space:nowrap;">등록자</th><th style="white-space:nowrap;">등록일시</th></tr>`;
+            }
+            
+          ['i-prod','i-vend','i-qty','i-reason','i-oos-status','i-oos-schedule','i-oos-remark', 'i-desig-type'].forEach(id => {
+    if (document.getElementById(id)) document.getElementById(id).value = "";
+});
+            resetPageAndRender();
+        }
+
+        // 로그인 관련 함수들
+        const elLoginWrapper = document.getElementById('login-wrapper'); 
+        const elAppSec = document.getElementById('app-section'); 
+        const elRegSec = document.getElementById('register-section'); 
+        const btnSidebar = document.getElementById('btn-show-sidebar');
+
+        function login() {
+            const pin = document.getElementById('user-pin').value;
+            if (pin.length !== 4 || isNaN(pin)) return showToast("⚠️ PIN 번호는 반드시 숫자 4자리로 입력해야 합니다.", true);
+            if (pin === "6979") { currentUser = "김정욱"; currentPin = pin; showApp(); return; }
+            
+            currentPin = pin; 
+            const userData = pins.find(p => String(p.pin).trim() === String(pin).trim());
+            
+            if (userData) { 
+                if (isTrue(userData.approved)) { 
+                    currentUser = userData.name; 
+                    showApp(); 
+                } else {
+                    showToast("⏳ 관리자 승인 대기 중입니다.", true); 
+                }
+            } else {
+                elRegSec.classList.remove('hidden');
+            }
+        }
+
+        function logout() {
+            currentUser = ""; currentPin = ""; document.getElementById('user-pin').value = "";
+            elAppSec.classList.add('hidden'); btnSidebar.classList.add('hidden');
+            elLoginWrapper.classList.remove('hidden'); elRegSec.classList.add('hidden');
+            setTimeout(() => { elLoginWrapper.style.opacity = '1'; }, 10);
+            if (autoRefreshTimer) { clearInterval(autoRefreshTimer); autoRefreshTimer = null; }
+        }
+
+        // 🌟 완벽 업그레이드된 실시간 뉴스 필터 로직 🌟
+        async function fetchNews() {
+            try {
+                const rssUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://news.google.com/rss/search?q=' + encodeURIComponent('(의약품 품절 OR 의약품 공급중단) when:7d') + '&hl=ko&gl=KR&ceid=KR:ko')}`;
+                const res = await fetch(rssUrl); 
+                const data = await res.json();
+                
+                if(data.status === 'ok' && data.items && data.items.length > 0) {
+                    let uniqueItems = [];
+                    // 의미 없는 공통 단어(불용어) 필터링 리스트
+                    const stopWords = ['의약품', '공급', '중단', '품절', '판매', '지속', '결정', '유지', '생산', '유통', '철회', '사전보고', '일시', '공급중단', '제약사', '약국', '이유'];
+                    
+                    for (let item of data.items) {
+                        // 언론사 꼬리말 제거 및 특수문자 공백 처리
+                        let cleanTitle = item.title.split(' - ')[0].replace(/[\[\]\'\"\,\.\:\;\-\_\(\)]/g, ' ');
+                        // 2글자 이상이면서 불용어가 아닌 핵심 단어만 추출
+                        let words = cleanTitle.split(' ').filter(w => w.length > 1 && !stopWords.includes(w));
+
+                        let isDuplicate = uniqueItems.some(existingItem => {
+                            let existingClean = existingItem.title.split(' - ')[0].replace(/[\[\]\'\"\,\.\:\;\-\_\(\)]/g, ' ');
+                            let existingWords = existingClean.split(' ').filter(w => w.length > 1);
+                            
+                            // 현재 기사와 기존 기사의 핵심 단어 교집합 개수 확인
+                            let matchCount = words.filter(w => existingWords.includes(w)).length;
+                            
+                            // 핵심 단어가 2개 이상 겹치면 동일 기사로 간주하여 필터링
+                            return matchCount >= 2;
+                        });
+
+                        if (!isDuplicate) {
+                            uniqueItems.push(item);
+                        }
+                        
+                        // 완벽하게 다른 기사로만 10개가 채워지면 중단
+                        if (uniqueItems.length >= 10) break;
+                    }
+
+                    if(uniqueItems.length === 0) throw new Error();
+
+                    document.getElementById('news-ticker-content').innerHTML = uniqueItems.map((item, idx) => `
+                        <li>
+                            <a href="${item.link}" target="_blank">
+                                <span class="news-number">${idx + 1}</span> ${item.title}
+                            </a>
+                        </li>
+                    `).join('');
+                } else {
+                    throw new Error();
+                }
+            } catch(e) { 
+                document.getElementById('news-ticker-content').innerHTML = "<li style='padding:16px 20px; color:#64748B;'>최근 7일간 업데이트된 실시간 품절 뉴스가 없습니다.</li>"; 
+            }
+        }
+
+        window.toggleNews = function() {
+            const container = document.getElementById('news-ticker-container');
+            container.classList.toggle('open');
+            const icon = document.getElementById('news-toggle-icon');
+            if(icon) icon.innerText = container.classList.contains('open') ? '▲' : '▼';
+        };
+
+        // 🌟 [핵심] 식약처 객관적 분류명 기반 시즌 추천 (수정됨) 🌟
+        function selectMonth(month) {
+            activeMonth = month;
+            document.querySelectorAll('.month-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.month-selector button:nth-child(${month})`).classList.add('active');
+            document.getElementById('current-month-title').innerText = `${month}월 타겟 식약처 분류군`;
+
+            let keywords = [];
+            if ([3, 4, 5].includes(month)) keywords = ["안과용제", "알레르기", "피부외용제", "호흡기"]; 
+            else if ([6, 7, 8].includes(month)) keywords = ["피부외용제", "소화기관용제", "안과용제"]; 
+            // 🌟 가을과 겨울 리스트 맨 뒤에 "진해거담제" 추가!
+            else if ([9, 10].includes(month)) keywords = ["호흡기", "안과용제", "피부외용제", "진해거담제"]; 
+            else keywords = ["항생제", "호흡기", "해열진통소염제", "내복액제", "소화기관용제", "진해거담제"]; 
+
+            const container = document.getElementById('season-chip-container');
+            container.innerHTML = "";
+            
+            // "전체보기" 칩 추가
+            const allBtn = document.createElement('button');
+            allBtn.className = `season-chip active`;
+            allBtn.innerText = `#전체보기(시즌제품)`;
+            allBtn.onclick = () => { 
+                activeKeywordChip = ""; 
+                setChipActive(allBtn); 
+                executeSeasonFilter(); 
+            };
+            container.appendChild(allBtn);
+            activeKeywordChip = "";
+
+            keywords.forEach((kw) => {
+                const btn = document.createElement('button');
+                btn.className = `season-chip`;
+                btn.innerText = `#${kw}`;
+                btn.onclick = () => { 
+                    activeKeywordChip = kw; 
+                    setChipActive(btn); 
+                    executeSeasonFilter(); 
+                };
+                container.appendChild(btn);
+            });
+            
+            executeSeasonFilter(); // 월 누르면 즉시 전체 필터 실행
+        }
+
+        function setChipActive(clickedBtn) {
+            document.querySelectorAll('.season-chip').forEach(c => c.classList.remove('active'));
+            clickedBtn.classList.add('active');
+        }
+
+        // 🌟 [핵심] 스마트 대체의약품 검색 로직 (메인 화면은 다시 깔끔하게 복구!) 🌟
+        function executeSeasonFilter() {
+            if (currentTab !== 'season') return;
+            const grid = document.getElementById('season-product-grid');
+            const empty = document.getElementById('season-empty');
+            
+            const searchText = document.getElementById('season-search-input').value.trim().toLowerCase();
+            
+            let baseFiltered = productsData.filter(p => {
+                const hasStandard = p.standardCode && p.standardCode.trim() !== "";
+                const hasEdi = p.ediCode && p.ediCode.trim() !== "";
+                return hasStandard && hasEdi; 
+            });
+
+            let filtered = [...baseFiltered];
+
+            if (searchText) {
+                filtered = baseFiltered.filter(p => {
+                    const n = (p.name || '').toLowerCase();
+                    const i = (p.ingredient || '').toLowerCase();
+                    const e = (p.efficacy || '').toLowerCase();
+                    const c = (p.classification || '').toLowerCase();
+                    const code = (p.code || '').toLowerCase();
+                    
+                    return n.includes(searchText) || i.includes(searchText) || e.includes(searchText) || c.includes(searchText) || code.includes(searchText);
+                });
+            } else if (activeKeywordChip) {
+                const kw = activeKeywordChip.toLowerCase();
+                filtered = filtered.filter(p => {
+                    const c = (p.classification||'').toLowerCase();
+                    const e = (p.efficacy||'').toLowerCase();
+                    return c.includes(kw) || e.includes(kw);
+                });
+            } else if (!searchText) {
+                let keywords = [];
+                if ([3, 4, 5].includes(activeMonth)) keywords = ["안과용제", "알레르기", "피부외용제", "호흡기"]; 
+                else if ([6, 7, 8].includes(activeMonth)) keywords = ["피부외용제", "소화기관용제", "안과용제"]; 
+                else if ([9, 10].includes(activeMonth)) keywords = ["호흡기", "안과용제", "피부외용제", "진해거담제"]; 
+                else keywords = ["항생제", "호흡기", "해열진통소염제", "내복액제", "소화기관용제", "진해거담제"]; 
+                
+                filtered = filtered.filter(p => {
+                    const c = (p.classification||'').toLowerCase(); 
+                    const e = (p.efficacy||'').toLowerCase();
+                    return keywords.some(k => c.includes(k) || e.includes(k));
+                });
+            }
+
+            grid.innerHTML = "";
+            if (filtered.length === 0) {
+                empty.style.display = "block";
+            } else {
+                empty.style.display = "none";
+                filtered.slice(0, 100).forEach(prod => { 
+                    
+                    let sName = "-";
+                    let mName = "-"; // 담당자 이름 변수 추가
+                    if (prod.seller) {
+    const matchCode = formatCode3(prod.seller);
+    const matchedSup = suppliersData.find(s => formatCode3(s.code) === matchCode);
+    if (matchedSup) sName = cleanCompanyName(matchedSup.name);
+    
+    // 제약사 코드로 담당자 찾기
+    const matchedMgr = managersData.find(m => formatCode3(m.code) === matchCode);
+    if (matchedMgr) mName = matchedMgr.name;
+}
+
+                    let ingrDisplay = cleanIngredient(prod.ingredient);
+                    let clsDisplay = prod.classification && prod.classification !== '기타일반약품' ? `<span style="font-size:0.75rem; background:#EDE9FE; color:#5B21B6; padding:3px 6px; border-radius:4px; font-weight:600; margin-bottom:6px; display:inline-block;">${prod.classification}</span>` : '';
+
+                    // index.html 파일의 executeSeasonFilter 함수 내부
+
+          const card = document.createElement('div');
+          card.className = "product-card";
+          card.innerHTML = `
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 6px;">
+                  <span style="font-size:0.8rem; color:var(--primary); font-weight:700;">🏢 ${sName} | 👨‍💼 ${mName}</span>
+                  <div>
+                      <span class="badge-etc">전문의약품</span>
+                  </div>
+              </div>
+              <div class="product-card-codes">표준: ${prod.standardCode || '-'} | 건보: ${prod.ediCode || '-'}</div>
+              ${clsDisplay}
+              <div class="product-card-title">${prod.name} <span style="font-size:0.85rem; font-weight:normal; color:var(--text-light); margin-left:4px;">${prod.spec || ''}</span></div>
+              <div class="product-card-ing">💊 성분: <span style="color:#0F172A; font-weight:600;">${ingrDisplay}</span></div>
+              <button class="alt-btn" onclick="openAltModal('${prod.code}')" style="position:absolute; bottom:15px; right:15px; width:auto; padding:6px 12px; font-size:0.8rem;">🔄 대체품 찾기</button>
+          `;
+          grid.appendChild(card);
+                });
+            }
+        }
+
+        // 🌟 [핵심] 사내 통합 대체품 검색기 로직 (실시간 지연 로딩 + 작대기 빈칸 감지 적용!) 🌟
+        window.openAltModal = async function(pCode) {
+            let prod = productsData.find(p => p.code === pCode);
+            if(!prod) return showToast("상품 정보를 찾을 수 없습니다.", true);
+
+            const renderContent = (targetProd) => {
+                let sName = "-";
+                if (targetProd.seller) {
+                    const matchCode = formatCode3(targetProd.seller);
+                    const matchedSup = suppliersData.find(s => formatCode3(s.code) === matchCode);
+                    if (matchedSup) sName = cleanCompanyName(matchedSup.name);
+                }
+
+                // 1. 대체품 모달의 기준 상품 이미지 처리 부분
+                let targetImgHtml = `
+                    <div style="width: 100px; height: 80px; background: #F1F5F9; border-radius: 8px; margin-right: 15px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); color: #94A3B8; font-size: 0.8rem; font-weight: 600;">
+                        이미지 없음
+                    </div>
+                `;
+                if (targetProd.item_image && targetProd.item_image !== '데이터 없음' && targetProd.item_image !== '-') {
+                    targetImgHtml = `
+                        <div class="zoom-img-box" onclick="openImagePopup('${targetProd.item_image}')" style="width: 100px; height: 80px; background: white; border-radius: 8px; margin-right: 15px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border); cursor: pointer;" title="클릭하면 크게 볼 수 있습니다">
+                            <img src="${targetProd.item_image}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                        </div>
+                    `;
+                }
+
+                document.getElementById('alt-target-info').innerHTML = `
+                    <div style="display: flex; align-items: center;">
+                        ${targetImgHtml}
+                        <div style="flex: 1;">
+                            <div style="font-size:0.85rem; color:var(--primary); font-weight:700; margin-bottom:4px;">🏢 ${sName} | ${targetProd.code}</div>
+                            <div style="font-size:1.2rem; font-weight:800; color:#0F172A; margin-bottom:4px;">${targetProd.name} <span style="font-size:0.9rem; color:#64748B;">${targetProd.spec||''}</span></div>
+                            <div style="font-size:0.85rem; color:#475569; margin-top:6px;">💊 기준 성분: <b>${cleanIngredient(targetProd.ingredient)}</b></div>
+                            <div style="font-size:0.85rem; color:#475569; margin-top:4px;">📦 기준 분류: <b>${targetProd.classification||'미분류'}</b></div>
+                            <div style="font-size:0.9rem; color:#059669; margin-top:6px; font-weight:800; background:#D1FAE5; padding:6px; border-radius:6px; display:inline-block;">${targetProd.ref_drug && targetProd.ref_drug !== '데이터 없음' ? targetProd.ref_drug : '👑 식약처 대조약 정보 없음'}</div>
+                        </div>
+                    </div>
+                `;
+
+                let ingr = targetProd.ingredient || "";
+                let cls = targetProd.classification || "";
+
+                let group1 = [];
+                if(ingr && ingr !== "데이터 없음" && ingr !== "-") {
+                    group1 = productsData.filter(p => p.code !== pCode && p.ingredient === ingr && p.classification === cls);
+                }
+
+                const getFormType = (item) => {
+                    const text = (item.name + " " + (item.spec || "")).toLowerCase();
+                    if (text.includes('시럽') || text.includes('현탁') || text.includes('내복액') || (text.includes('액') && !text.includes('점안') && !text.includes('액트'))) return 'liquid';
+                    if (text.includes('주사') || text.includes('주 ') || text.endsWith('주') || text.includes('amp')) return 'injection';
+                    if (text.includes('연고') || text.includes('크림') || text.includes('겔')) return 'ointment';
+                    if (text.includes('점안')) return 'eye_drop';
+                    return 'solid';
+                };
+
+                const targetForm = getFormType(targetProd);
+
+                let group2 = [];
+                if(cls && cls !== "기타일반약품" && cls !== "-") {
+                    group2 = productsData.filter(p => {
+                        const isMatch = p.code !== pCode && p.classification === cls && p.ingredient !== ingr;
+                        return isMatch && getFormType(p) === targetForm;
+                    });
+                }
+
+                const renderCard = (p) => {
+                    let sellerName = "-";
+                    let mgrName = "-";
+                    if (p.seller) {
+                        const mCode = formatCode3(p.seller);
+                        const sup = suppliersData.find(s => formatCode3(s.code) === mCode);
+                        if(sup) sellerName = cleanCompanyName(sup.name);
+                        
+                        const mgr = managersData.find(m => formatCode3(m.code) === mCode);
+                        if(mgr) mgrName = mgr.name;
+                    }
+                    
+                    let imgHtml = `
+                        <div style="width: 100%; height: 90px; background: #F1F5F9; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); color: #94A3B8; font-size: 0.8rem; font-weight: 600;">
+                            이미지 없음
+                        </div>
+                    `;
+                    if (p.item_image && p.item_image !== '데이터 없음' && p.item_image !== '-') {
+                        imgHtml = `
+                            <div class="zoom-img-box" onclick="openImagePopup('${p.item_image}')" style="width: 100%; height: 90px; background: white; border-radius: 8px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border); cursor: pointer;" title="클릭하면 크게 볼 수 있습니다">
+                                <img src="${p.item_image}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                            </div>
+                        `;
+                    }
+
+                    return `
+                        <div style="background:white; border:1px solid var(--border); padding:12px; border-radius:8px; box-shadow:var(--shadow-sm); position:relative;">
+                            <div style="font-size:0.75rem; color:var(--primary); font-weight:700; margin-bottom:4px;">🏢 ${sellerName} | 👨‍💼 ${mgrName}</div>
+                            ${imgHtml}
+                            <div style="font-size:1rem; font-weight:800; color:#0F172A; margin-bottom:8px;">${p.name} <span style="font-size:0.8rem; color:#64748B;">${p.spec||''}</span></div>
+                            <div style="font-size:0.8rem; color:#475569; margin-bottom:4px; line-height:1.3;">💊 성분: ${cleanIngredient(p.ingredient)}</div>
+                            <div style="font-size:0.8rem; color:#475569; margin-bottom:4px;">📦 분류: <b style="color:#5B21B6;">${p.classification||'미분류'}</b></div>
+                            <div style="font-size:0.85rem; color:#059669; font-weight:800; margin-bottom:6px;">${p.ref_drug && p.ref_drug !== '데이터 없음' ? p.ref_drug : ''}</div>
+                            <div style="font-size:0.8rem; color:#475569; margin-bottom:4px;">🔖 코드: ${p.code}</div>
+                        </div>
+                    `;
+                };
+
+                const g1Html = group1.length > 0 ? group1.map(renderCard).join('') : '<div style="color:var(--text-light); font-size:0.9rem; padding:10px;">일치하는 동일 성분 의약품이 사내 데이터에 없습니다.</div>';
+                const g2Html = group2.length > 0 ? group2.slice(0,50).map(renderCard).join('') : '<div style="color:var(--text-light); font-size:0.9rem; padding:10px;">일치하는 유사 제형/계열 의약품이 없습니다.</div>';
+
+                document.getElementById('alt-group1').innerHTML = g1Html;
+                document.getElementById('alt-group2').innerHTML = g2Html;
+            };
+
+            document.getElementById('alt-modal-overlay').classList.remove('hidden');
+            document.getElementById('alt-modal').classList.remove('hidden');
+            renderContent(prod);
+
+            const isMissingData = !prod.ingredient || prod.ingredient === '데이터 없음' || prod.ingredient === '-' || !prod.item_image || prod.item_image === '데이터 없음' || prod.item_image === '-';
+            const hasStandardCode = prod.standardCode && prod.standardCode.trim() !== "";
+            const hasEdiCode = prod.ediCode && prod.ediCode.trim() !== "";
+
+            if (isMissingData) {
+                if (!hasStandardCode || !hasEdiCode) {
+                    showToast("⚠️ 표준코드나 건보코드가 없어 식약처 실시간 조회가 불가능합니다.", true);
+                    return;
+                }
+
+                const loadingBanner = document.createElement('div');
+                loadingBanner.id = "alt-live-loading";
+                loadingBanner.style = "background: #F5F3FF; color: #7C3AED; font-size: 0.85rem; font-weight: 700; text-align: center; padding: 8px; border-radius: 6px; margin-top: 10px; animation: pulse 1.5s infinite;";
+                loadingBanner.innerHTML = "⏳ 식약처 실시간 데이터 수집 중... (약 1~2초 소요)";
+                document.getElementById('alt-target-info').appendChild(loadingBanner);
+
+                try {
+                    const apiKey1 = "RZuGihPu%2F6CrX4SlBMzIx4wHhKMRhzBzkTKPGlBQcoI0g1X%2Bcn%2Fn%2FbHJMiAWH7TwnqqEaKIZfjBnfXVF1o4bLA%3D%3D"; 
+                    const res = await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=syncMfdsData', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ apiKey1: apiKey1, apiKey2: apiKey1, productCodes: [prod] })
+                    });
+                    
+                    if (res.ok) {
+                        const resultData = await res.json();
+                        if (resultData.updated > 0) {
+                            await loadAllData(true); 
+                            let updatedProd = productsData.find(p => p.code === pCode) || prod;
+                            renderContent(updatedProd); 
+                            showToast("✨ 실시간 데이터가 업데이트 되었습니다!");
+                        } else {
+                            const banner = document.getElementById('alt-live-loading');
+                            if(banner) {
+                                banner.style.background = "#F1F5F9"; banner.style.color = "#64748B"; banner.style.animation = "none";
+                                banner.innerHTML = "💡 식약처 공공데이터에 등록된 정보가 없습니다.";
+                            }
+                        }
+                    }
+                } catch(e) {
+                    const banner = document.getElementById('alt-live-loading');
+                    if(banner) {
+                        banner.style.background = "#FEE2E2"; banner.style.color = "#DC2626"; banner.style.animation = "none";
+                        banner.innerHTML = "❌ 통신 오류: 데이터를 가져오지 못했습니다.";
+                    }
+                }
+            }
+        };
+
+        window.closeAltModal = function() {
+            document.getElementById('alt-modal-overlay').classList.add('hidden');
+            document.getElementById('alt-modal').classList.add('hidden');
+        };
+
+        // 🌟 15건 수동 강제 동기화 로직 (버튼 클릭 시 보조용) 🌟
+        async function startSyncMfds() {
+            const etcProducts = productsData.filter(p => p.standardCode && p.standardCode.trim() !== "" && p.ediCode && p.ediCode.trim() !== "");
+            
+            // 🌟 👇 [수정됨] 빈칸, 작대기('-')는 물론, 과거 엑셀 오류로 '데이터 없음' 낙인이 찍힌 실패작들까지 멱살 잡고 재도전!
+            let targetProducts = etcProducts.filter(p => 
+                (!p.efficacy || p.efficacy === '-' || p.efficacy === '데이터 없음') || 
+                (!p.ingredient || p.ingredient === '-' || p.ingredient === '데이터 없음') || 
+                (!p.ref_drug || p.ref_drug === '-' || p.ref_drug === '데이터 없음') || 
+                (!p.item_image || p.item_image === '-' || p.item_image === '데이터 없음')
+            );
+            
+            if (targetProducts.length === 0) {
+                return showToast("✅ 취급 중인 모든 전문의약품의 식약처 데이터 조회가 완료되었습니다.");
+            }
+
+            // 수동 버튼은 15개씩만 강제 실행
+            targetProducts = targetProducts.slice(0, 15);
+
+            const btn = document.getElementById('btn-sync');
+            const progressBox = document.getElementById('sync-progress-box');
+            const barFill = document.getElementById('sync-bar-fill');
+            const syncText = document.getElementById('sync-text');
+            const syncStatusEl = document.getElementById('sync-status-text'); 
+
+            btn.disabled = true;
+            progressBox.style.display = 'block';
+            
+            const apiKey1 = "RZuGihPu%2F6CrX4SlBMzIx4wHhKMRhzBzkTKPGlBQcoI0g1X%2Bcn%2Fn%2FbHJMiAWH7TwnqqEaKIZfjBnfXVF1o4bLA%3D%3D"; 
+            const apiKey2 = "RZuGihPu%2F6CrX4SlBMzIx4wHhKMRhzBzkTKPGlBQcoI0g1X%2Bcn%2Fn%2FbHJMiAWH7TwnqqEaKIZfjBnfXVF1o4bLA%3D%3D"; 
+            
+            let currentSyncedCount = etcProducts.filter(p => p.efficacy || p.ingredient).length;
+            const totalEtcCount = etcProducts.length;
+
+            try {
+                const res = await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=syncMfdsData', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ apiKey1: apiKey1, apiKey2: apiKey2, productCodes: targetProducts })
+                });
+                
+                if(res.ok) {
+                    const resultData = await res.json();
+                    
+                    if (resultData.success === false && resultData.error) {
+                        showToast("🚨 " + resultData.error, true);
+                    } else if (resultData.updated !== undefined && resultData.updated > 0) {
+                        currentSyncedCount += resultData.updated;
+                        if (syncStatusEl) {
+                            syncStatusEl.innerHTML = `✅ 현재 <b style="color:#10B981;">${currentSyncedCount}건</b> / 총 전문의약품 ${totalEtcCount}건 동기화 완료`;
+                        }
+                    }
+                }
+            } catch(e) { 
+                console.error("Sync Error", e); 
+            } 
+            
+            barFill.style.width = '100%';
+            syncText.innerText = `15 / 15 (100%)`;
+
+            showToast(`✅ 수동 동기화 15건이 완료되었습니다.`);
+            btn.disabled = false;
+            setTimeout(() => { 
+                progressBox.style.display = 'none'; 
+                loadAllData(true); 
+            }, 1000);
+        }
+
+        async function resetSyncData() {
+            if(!confirm("현재까지 저장된 모든 식약처 동기화 데이터(성분/분류명)를 싹 지우고 초기화합니다.\n정말 처음부터 다시 받으시겠습니까?")) return;
+            
+            const btn = document.getElementById('btn-reset-sync');
+            btn.disabled = true;
+            btn.innerText = "⏳ 초기화 중...";
+
+            try {
+                await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=resetSyncData', { 
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) 
+                });
+                showToast("✅ 동기화 데이터가 초기화되었습니다. 백그라운드에서 다시 수집을 시작합니다.");
+                await loadAllData(true);
+            } catch(e) {
+                showToast("❌ 초기화 실패", true);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "🗑️ 식약처 동기화 데이터 전체 초기화";
+            }
+        }
+
+        function showApp() {
+            elLoginWrapper.style.opacity = '0';
+            setTimeout(() => {
+                elLoginWrapper.classList.add('hidden'); 
+                elAppSec.classList.remove('hidden');
+                
+                if (SUPER_ADMINS.includes(currentUser)) btnSidebar.classList.remove('hidden'); 
+                else btnSidebar.classList.add('hidden');
+                
+                document.getElementById('welcome-msg').innerHTML = `✅ 인증 완료! 환영합니다, <strong>${currentUser}</strong>님`;
+                document.getElementById('i-reg').value = currentUser;
+                
+                const userData = pins.find(p => p.pin === currentPin);
+                const userTabs = (userData && userData.tabs) ? userData.tabs.split(',') : ['order', 'desig', 'oos'];
+                
+                document.getElementById('tab-order').style.display = userTabs.includes('order') ? 'block' : 'none';
+                document.getElementById('tab-desig').style.display = userTabs.includes('desig') ? 'block' : 'none';
+                document.getElementById('tab-oos').style.display = userTabs.includes('oos') ? 'block' : 'none';
+                document.getElementById('tab-season').style.display = 'block';
+
+              /* 👇👇👇 여기에 3줄을 추가하세요! 👇👇👇 */
+                const tabContainer = document.getElementById('main-tab-container');
+                let displayTabs = [...userTabs];
+                if (!displayTabs.includes('season')) displayTabs.push('season'); // 안전장치
+                displayTabs.forEach(tab => {
+                    const tabBtn = document.getElementById(`tab-${tab}`);
+                    if (tabBtn) tabContainer.appendChild(tabBtn);
+                });
+              /* 👆👆👆 여기까지 👆👆👆 */
+
+                if (userTabs.includes('order')) switchTab('order'); 
+                else if (userTabs.includes('desig')) switchTab('desig'); 
+                else if (userTabs.includes('oos')) switchTab('oos'); 
+                else switchTab('season');
+                
+                fetchNews();
+            }, 400);
+            
+            if (!autoRefreshTimer) autoRefreshTimer = setInterval(() => { loadAllData(true); }, 15000);
+        }
+
+        async function registerPin() {
+            const name = document.getElementById('user-name').value.trim();
+            if (!name) return showToast("⚠️ 이름을 입력해주세요.", true); 
+            
+            let finalName = name; 
+            let suffixCode = 65; 
+            while (pins.some(p => p.name === finalName)) { 
+                finalName = name + String.fromCharCode(suffixCode); 
+                suffixCode++; 
+                if (suffixCode > 90) break; 
+            }
+            
+            try {
+                const res = await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=addPin', { 
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ pin: currentPin, name: finalName, approved: false }) 
+                });
+                if (!res.ok) throw new Error();
+                
+                if (name !== finalName) showToast(`⏳ 동명이인이 있어 '${finalName}'(으)로 등록되었습니다.`); 
+                else showToast("⏳ 등록 완료! 관리자 승인 후 접속 가능");
+                
+                cancelRegister(); 
+                loadAllData(true);
+            } catch (e) { 
+                showToast("등록 실패: API 오류", true); 
+            }
+        }
+
+        function cancelRegister() { 
+            document.getElementById('user-pin').value = ""; 
+            document.getElementById('user-name').value = ""; 
+            document.getElementById('register-section').classList.add('hidden'); 
+        }
+
+        function toggleSidebar() { 
+            document.getElementById('sidebar').classList.toggle('hidden'); 
+            document.getElementById('btn-show-sidebar').classList.toggle('hidden'); 
+        }
+
+        function checkAdmin() { 
+            const pwInput = document.getElementById('admin-pw');
+            if(pwInput.value.trim() === ADMIN_PW) { 
+                document.getElementById('admin-menu').classList.remove('hidden'); 
+                document.getElementById('admin-login-area').style.display = 'none'; 
+                showToast("✅ 관리자 인증 완료"); 
+            } else { 
+                showToast("⚠️ 비밀번호 불일치", true); 
+                pwInput.value = ""; 
+                pwInput.focus(); 
+            }
+        }
+
+        function togglePinList() {
+            const display = document.getElementById('pin-list-display');
+            if (!display.classList.contains('hidden')) { 
+                display.classList.add('hidden'); 
+                return; 
+            }
+            display.classList.remove('hidden'); 
+            renderPinList();
+        }
+
+        function renderPinList() {
+            const display = document.getElementById('pin-list-display');
+            if (pins.length === 0) { 
+                display.innerHTML = '<p style="color: var(--text-light); text-align: center; margin: 0;">등록된 사용자가 없습니다.</p>'; 
+                return; 
+            }
+            
+            const sortedPins = [...pins].sort((a, b) => a.name.localeCompare(b.name));
+            let html = `<div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 0.5rem;"><strong>총 ${sortedPins.length}명 등록됨</strong></div><ul style="list-style: none; padding: 0; margin: 0;">`;
+            
+            sortedPins.forEach(item => {
+                const isApp = isTrue(item.approved); 
+                const tabsStr = item.tabs || 'order,desig,oos'; 
+                
+                html += `<li style="padding: 0.8rem 0; border-bottom: 1px dashed var(--border);">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                                <div><strong style="color: ${isApp?'var(--primary)':'var(--text-light)'}; font-size: 1.05rem;">${item.name}</strong> <span style="color: var(--text-light); font-size: 0.85rem;">(PIN: ${item.pin}) ${!isApp ? '⏳' : ''}</span></div>
+                                <div style="display:flex;">
+                                    <button onclick="window.approvePin('${item.pin}', '${item.name}')" style="width: auto; padding: 0.3rem 0.6rem; font-size: 0.8rem; background-color: var(--success); color: white; margin:0; margin-right:0.5rem;">✅ ${isApp ? '수정' : '승인'}</button>
+                                    <button onclick="window.deletePin('${item.pin}', '${item.name}')" class="secondary" style="width: auto; padding: 0.3rem 0.6rem; font-size: 0.8rem; color: var(--danger); border-color: var(--danger); margin:0;">삭제</button>
+                                </div>
+                            </div>
+                            <div style="display:flex; justify-content:space-around; background: var(--sec-bg); padding: 8px; border-radius: 8px; margin-top: 8px;">
+                                <input type="checkbox" id="tab_order_${item.pin}" class="perm-checkbox" ${tabsStr.includes('order') ? 'checked' : ''}><label for="tab_order_${item.pin}" class="perm-label" style="color: var(--primary);">📦 주문</label>
+                                <input type="checkbox" id="tab_desig_${item.pin}" class="perm-checkbox" ${tabsStr.includes('desig') ? 'checked' : ''}><label for="tab_desig_${item.pin}" class="perm-label" style="color: var(--desig-color);">🏥 지정분</label>
+                                <input type="checkbox" id="tab_oos_${item.pin}" class="perm-checkbox" ${tabsStr.includes('oos') ? 'checked' : ''}><label for="tab_oos_${item.pin}" class="perm-label" style="color: var(--oos-color);">🚨 품절</label>
+                            </div>
+                         </li>`;
+            });
+            display.innerHTML = html + '</ul>';
+        }
+
+        window.approvePin = async function(pin, name) {
+            const tabs = [];
+            if(document.getElementById(`tab_order_${pin}`).checked) tabs.push('order');
+            if(document.getElementById(`tab_desig_${pin}`).checked) tabs.push('desig');
+            if(document.getElementById(`tab_oos_${pin}`).checked) tabs.push('oos');
+            
+            if (tabs.length === 0) return showToast("⚠️ 최소 1개 이상의 탭 권한을 부여해야 합니다.", true);
+            
+            try {
+                await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=addPin', { 
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ pin: pin, name: name, approved: true, tabs: tabs.join(',') }) 
+                });
+                showToast(`✅ ${name}님 승인 완료.`); 
+                loadAllData(true);
+            } catch(e) { 
+                showToast("오류 발생", true); 
+            }
+        };
+
+        window.deletePin = async function(pin, name) {
+            if(confirm(`[${name}] 삭제하시겠습니까?`)) {
+                await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=deletePin', { 
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ pin: pin }) 
+                });
+                showToast(`✅ 삭제 완료`); 
+                loadAllData(true);
+            }
+        };
+
+        async function clearData(action) {
+            if(confirm(`🚨 전체 초기화됩니다. 계속하시겠습니까?`)) {
+                await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=' + action, { 
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({}) 
+                });
+                showToast(`✅ 초기화 완료`); 
+                if(action === 'clearAllPins') logout(); 
+                loadAllData(true);
+            }
+        }
+
+        window.processPastedDesigData = async function() {
+           const text = document.getElementById('paste-area-desig').value; 
+            if (!text.trim()) return;
+            
+            // 맨 끝에 .reverse() 를 추가해서 데이터를 밑에서부터 거꾸로 처리하게 만듭니다.
+            const lines = text.split('\n').filter(l => l.trim() !== '').reverse(); 
+            const payloads = [];
+            const nowTime = new Date().getTime();
+            
+            for (let i = 0; i < lines.length; i++) {
+                const cols = lines[i].split('\t').map(c => c.trim()); 
+                const pCode = cols[0] || ''; 
+                const vCode = cols[1] || '';
+                
+                if (!pCode || pCode === '제품코드' || pCode === '코드') continue;
+                
+                let pName = "미등록품목", pSpec = ""; 
+                const matchedProd = productsData.find(p => p.code === pCode); 
+                if (matchedProd) { 
+                    pName = matchedProd.name; 
+                    pSpec = matchedProd.spec; 
+                }
+                
+                let vName = "미등록거래처"; 
+                const matchedVend = vendorsData.find(v => v.code === vCode); 
+                if (matchedVend) vName = matchedVend.name;
+                
+                const now = new Date(); 
+                const dateStr = now.getFullYear() + "-" + String(now.getMonth()+1).padStart(2,'0') + "-" + String(now.getDate()).padStart(2,'0') + " " + String(now.getHours()).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0');
+                
+                // 👇 1. 추가된 부분: 엑셀의 5번째 기둥(cols[4])에서 구분을 가져옴
+                // 값이 비어있으면 기본값으로 '제약사입고'가 들어가도록 안전장치 설정
+                const desigType = cols[4] ? cols[4] : "제약사입고"; 
+                
+                payloads.push({ 
+                    id: String(nowTime + i), boardType: 'desig', del: false, check: false, recv: false, 
+                    pCode: pCode, pName: pName, pSpec: pSpec, qty: cols[2]||'', 
+                    vCode: vCode, vName: vName, center: (cols[3]||'').replace(/센터/g,'').trim(), 
+                    reg: currentUser, 
+                    regReason: desigType, // 👈 2. 변경된 부분: 기존 "일괄등록"을 방금 만든 desigType 변수로 교체!
+                    dateStr: dateStr 
+                });
+            }
+            
+            if (payloads.length === 0) return showToast("⚠️ 인식 불가", true);
+            
+            const btn = document.getElementById('btn-paste-desig'); 
+            btn.disabled = true; 
+            btn.innerText = "⏳ 등록 중...";
+            
+           try { 
+                // Promise.all 대신 for...of 문을 사용하여 순차적으로 전송
+                for (const r of payloads) {
+                    await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=addEntry', { 
+                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(r) 
+                    });
+                }
+                
+                document.getElementById('paste-area-desig').value = ""; 
+                showToast(`✅ 일괄 등록 성공!`); 
+                currentPage = 1; 
+                loadAllData(true); 
+            } catch(e) {} 
+            finally { 
+                btn.disabled = false; 
+                btn.innerText = "일괄 자동 등록하기"; 
+            }
+        };
+
+        function uploadExcel(tableName, inputId) {
+            const fileInput = document.getElementById(inputId); 
+            const btn = document.getElementById(inputId.replace('file', 'btn-upload'));
+            
+            if (fileInput.files.length === 0) return showToast("⚠️ 엑셀 파일을 선택해주세요.", true); 
+            if (!confirm(`🚨 기존 데이터 덮어쓰기를 진행합니다.`)) return;
+            
+            // 🌟 1. 엑셀 전용 [% 진행률 바 UI] 동적 생성 🌟
+            let progressBox = document.getElementById('prog-box-' + tableName);
+            if (!progressBox) {
+                progressBox = document.createElement('div');
+                progressBox.id = 'prog-box-' + tableName;
+                progressBox.className = 'sync-progress-box'; // 기존 CSS 재활용
+                progressBox.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; color:#047857;">
+                        <span id="prog-status-${tableName}">엑셀 파일 분석 중...</span>
+                        <span id="prog-text-${tableName}">0%</span>
+                    </div>
+                    <div class="sync-bar-bg"><div id="prog-fill-${tableName}" class="sync-bar-fill" style="background:#10B981;"></div></div>
+                `;
+                fileInput.parentNode.appendChild(progressBox);
+            }
+            
+            const progStatus = document.getElementById('prog-status-' + tableName);
+            const progText = document.getElementById('prog-text-' + tableName);
+            const progFill = document.getElementById('prog-fill-' + tableName);
+            
+            if (btn) { btn.disabled = true; btn.innerText = "⏳ 처리 중..."; } 
+            
+            // 진행률 바 띄우기
+            progressBox.style.display = 'block';
+            progFill.style.width = '0%';
+            progStatus.innerText = '엑셀 파일 분석 중...';
+            progText.innerText = '0%';
+
+            // 브라우저 멈춤 방지를 위해 0.1초 쉬고 시작 (UI 렌더링 시간 확보)
+            setTimeout(() => {
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    try {
+                        const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+                        const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {defval: ""});
+                        let rows = [];
+                        
+                        jsonData.forEach(r => {
+        if (tableName === 'products') {
+            const code = r['코드'] || r['상품코드'] || r['제품코드'];
+            
+            // 🌟 👇 [핵심 추가] 건보코드, 표준코드의 하이픈(-), 공백, 소수점(.0)을 완벽하게 제거하는 자동 정화 로직!
+            let rawEdi = r['건보코드'] || r['보험코드'] || '';
+            let rawStd = r['표준코드'] || '';
+            
+            // 숫자와 알파벳만 남기고 모든 기호(-, 공백 등)를 싹 지워버립니다.
+            let cleanEdi = String(rawEdi).replace(/\.0$/, '').replace(/[^0-9a-zA-Z]/g, '').trim();
+            let cleanStd = String(rawStd).replace(/\.0$/, '').replace(/[^0-9a-zA-Z]/g, '').trim();
+
+            // 혹시라도 엑셀이 지수표기법(E+12) 텍스트로 보냈다면, 숫자로 쫙 펴줍니다.
+            if (cleanStd.includes('E') || cleanStd.includes('e')) {
+                cleanStd = Number(rawStd).toLocaleString('fullwide', {useGrouping:false});
+            }
+            if (cleanEdi.includes('E') || cleanEdi.includes('e')) {
+                cleanEdi = Number(rawEdi).toLocaleString('fullwide', {useGrouping:false});
+            }
+
+            // 🌟 엑셀에서 기준가 읽어오기 (콤마 제거)
+            const rawPrice = r['기준가'] || r['단가'] || r['가격'] || '0';
+            const cleanPrice = String(rawPrice).replace(/,/g, '').trim(); 
+            
+            if (code) {
+                rows.push({ 
+                    code: String(code).replace(/\.0$/, '').trim().padStart(6, '0'), 
+                    name: String(r['상품명']||r['제품명']||r['품명']||'').trim(), 
+                    spec: String(r['규격']||'').trim(), 
+                    seller: getLastMatchingColumn(r, '판매원') || getLastMatchingColumn(r, '제약사') || getLastMatchingColumn(r, '제조원'), 
+                    standardCode: cleanStd, // ✨ 찌꺼기 싹 빠진 표준코드 탑재!
+                    ediCode: cleanEdi,      // ✨ 찌꺼기 싹 빠진 건보코드 탑재!
+                    price: cleanPrice 
+                });
+            }
+        } else if (tableName === 'vendors') { // 👈 (vendors 부분 그대로 이어짐)
+            const code = r['코드'] || r['매출처코드'] || r['거래처코드']; 
+            if (code) {
+                                    rows.push({ 
+                                        code: String(code).replace(/\.0$/, '').trim(), 
+                                        name: String(r['매출처명'] || r['거래처명'] || r['상호'] || '').trim(), 
+                                        region: String(r['지역'] || '').trim(), 
+                                        address: String(r['주소'] || '').trim(), 
+                                        center: String(r['센타구분'] || r['센터'] || '').replace(/센터/g, '').trim() 
+                                    });
+                                }
+                            } else if (tableName === 'suppliers') {
+                                const code = r['코드'] || r['매입처코드'] || r['거래처코드']; 
+                                if (code) {
+                                    rows.push({ 
+                                        code: String(code).replace(/\.0$/, '').trim(), 
+                                        name: getLastMatchingColumn(r, '매입처') || getLastMatchingColumn(r, '거래처명') || getLastMatchingColumn(r, '상호') 
+                                    });
+                                }
+                            } else if (tableName === 'managers') {
+                                const code = r['주문코드'] || r['코드'] || r['매입처코드'] || r['제약사코드']; 
+                                if (code) {
+                                    rows.push({ 
+                                        code: String(code).replace(/\.0$/, '').trim(), 
+                                        name: getLastMatchingColumn(r, '주문자') || getLastMatchingColumn(r, '담당자') || getLastMatchingColumn(r, '사원명') 
+                                    });
+                                }
+                            } else if (tableName === 'outofstock') {
+                                const code = r['코드'] || r['제품코드'] || r['상품코드']; 
+                                if (code) {
+                                    rows.push({ 
+                                        code: String(code).replace(/\.0$/, '').trim().padStart(6, '0'), 
+                                        name: String(r['제품명'] || r['상품명'] || '').trim(), 
+                                        spec: String(r['규격'] || '').trim(), 
+                                        status: String(r['품절여부'] || '').trim(), 
+                                        schedule: String(r['해지일정여부'] || r['해지일정'] || '').trim(), 
+                                        remark: String(r['비고'] || '').trim() 
+                                    });
+                                }
+                            }
+                        });
+
+                       if (['products', 'outofstock'].includes(tableName)) {
+                            const uniqueMap = new Map(); 
+                            rows.forEach(r => { 
+                                if(r.code !== '000000') uniqueMap.set(tableName === 'outofstock' ? `${r.code}_${r.spec}` : r.code, r); 
+                            }); 
+                            rows = Array.from(uniqueMap.values());
+                        }
+
+                        // 🌟 👇 [핵심 추가] 품절(oos) 엑셀 업로드 시 사용자가 적어둔 순서 그대로 들어가도록 정렬을 맞춥니다!
+                        if (tableName === 'outofstock') {
+                            rows.reverse(); // 엑셀의 위쪽 행이 화면의 위쪽에 오도록 바로잡음
+                        }
+
+                        const now = new Date(); 
+                        const dateStr = now.getFullYear() + "-" + String(now.getMonth()+1).padStart(2,'0') + "-" + String(now.getDate()).padStart(2,'0') + " " + String(now.getHours()).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0');
+                        
+                        // 🌟 2. 500개씩 쪼개서 전송하며 % 막대기 업데이트 🌟
+                        const totalRows = rows.length;
+                        const BATCH_SIZE = 500; 
+                        
+                        progStatus.innerText = "서버 저장 중...";
+
+                        for (let i = 0; i < totalRows; i += BATCH_SIZE) {
+                            const chunk = rows.slice(i, i + BATCH_SIZE);
+                            const isAppend = i > 0; // 첫 묶음일 때만 초기화(덮어쓰기)
+                            const isLast = (i + BATCH_SIZE) >= totalRows;
+                            const uploadPayload = isLast ? (dateStr + "|" + currentUser) : null;
+                            
+                            await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=uploadMaster', { 
+                                method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+                                body: JSON.stringify({ table: tableName, rows: chunk, uploadDate: uploadPayload, isAppend: isAppend }) 
+                            });
+                            
+                            // 진행률 업데이트
+                            let processed = Math.min(i + BATCH_SIZE, totalRows);
+                            let pct = Math.floor((processed / totalRows) * 100);
+                            
+                            progFill.style.width = pct + '%';
+                            progText.innerText = `${pct}% (${processed} / ${totalRows}건)`;
+                        }
+                        
+                        showToast(`✅ ${tableName} 완벽하게 업로드 완료!`); 
+                        fileInput.value = ""; 
+                        
+                        // 🌟 실시간 즉각 동기화 로직 🌟
+                        setTimeout(async () => { 
+                            progressBox.style.display = 'none'; 
+                            await loadAllData(true); 
+                        }, 500); // 사용자 대기 시간 최소화
+
+                    } catch(err) { 
+                        showToast("❌ 통신 에러가 발생했습니다.", true); 
+                        progressBox.style.display = 'none';
+                    } finally { 
+                        if (btn) { btn.disabled = false; btn.innerText = "데이터 덮어쓰기"; } 
+                    }
+                }; 
+                reader.readAsArrayBuffer(fileInput.files[0]);
+            }, 100); 
+        }
+
+        function getLastMatchingColumn(row, keyword) { 
+            const key = Object.keys(row).reverse().find(k => k.trim().includes(keyword)); 
+            return (key && row[key] != null) ? String(row[key]).replace(/\.0$/, '').trim() : ""; 
+        }
+
+        async function loadAllData(isSilent = false) {
+            try {
+                const res = await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=getAll'); 
+                const data = await res.json();
+                
+                productsData = data.products || []; 
+                vendorsData = data.vendors || []; 
+                suppliersData = data.suppliers || []; 
+                managersData = data.managers || []; 
+                outOfStockData = data.outofstock || []; 
+               pins = data.pins || []; 
+                entries = data.entries || [];
+
+                // 👇 데이터 로딩 완료 시 잠금 해제! 👇
+                const pinInput = document.getElementById('user-pin');
+                const btnLogin = document.getElementById('btn-login');
+                if (pinInput && pinInput.disabled) {
+                    pinInput.disabled = false;
+                    if (btnLogin) {
+                        btnLogin.disabled = false;
+                        btnLogin.innerText = "입장하기";
+                    }
+                    pinInput.focus(); // 비로소 커서가 깜빡입니다!
+                }
+              // 👆 여기까지 추가 👆
+
+                // 🌟 식약처 데이터 카운팅 즉각 반영 (전문의약품 타겟만 계산) 🌟
+                const etcProducts = productsData.filter(p => p.standardCode && p.standardCode.trim() !== "" && p.ediCode && p.ediCode.trim() !== "");
+                
+                // ✅ 수정 후 (index.html) - 성분이 진짜로 존재하는 것만 엄격하게 카운팅!
+                const syncedCount = etcProducts.filter(p => p.ingredient && p.ingredient !== "데이터 없음" && p.ingredient !== "-").length;
+                
+                const syncStatusEl = document.getElementById('sync-status-text');
+                if (syncStatusEl) {
+                    syncStatusEl.innerHTML = `✅ 현재 <b style="color:#10B981;">${syncedCount}건</b> / 총 전문의약품 ${etcProducts.length}건 동기화 완료`;
+                }
+                
+                window.uploadUploader = {}; 
+                ['products', 'suppliers', 'managers', 'vendors', 'outofstock'].forEach(table => {
+                    const dateSpan = document.getElementById('date-' + table); 
+                    const raw = (data.uploadDates||{})[table] || "";
+                    if (raw.includes('|')) { 
+                        const parts = raw.split('|'); 
+                        if (dateSpan) dateSpan.innerText = `${parts[0]} (${parts[1]})`; 
+                        window.uploadUploader[table] = parts[1]; 
+                    } else { 
+                        if (dateSpan) dateSpan.innerText = raw; 
+                        window.uploadUploader[table] = "엑셀업로드"; 
+                    }
+                });
+
+                if (!document.getElementById('app-section').classList.contains('hidden')) {
+                    if (currentTab !== 'season') renderTable();
+                    else executeSeasonFilter(); 
+                    if (!document.getElementById('pin-list-display').classList.contains('hidden')) renderPinList();
+                    if (!isSilent) showToast("🔄 데이터를 최신화했습니다.");
+                }
+            } catch (e) { 
+                if (!isSilent) showToast("🚨 로딩 오류", true); 
+            }
+        }
+
+        function updateEntryInDB(id, updates) {
+            const entryIndex = entries.findIndex(e => e.id === id);
+            if (entryIndex > -1) { 
+                const localUpdates = { ...updates }; 
+                if (localUpdates.check !== undefined) localUpdates.check_status = localUpdates.check ? 1 : 0; 
+                entries[entryIndex] = { ...entries[entryIndex], ...localUpdates }; 
+            }
+            renderTable();
+            return fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=updateEntry', { 
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, updates: updates }) 
+            }).catch(e => showToast("업데이트 실패", true));
+        }
+
+        async function addRow() {
+            const canInput = currentTab === 'order' || INPUT_USERS.includes(currentUser) || SUPER_ADMINS.includes(currentUser);
+            if (!canInput) return showToast("🚨 권한이 없습니다.", true);
+
+            if (currentTab === 'oos') {
+                const prod = document.getElementById('i-prod').value.trim(); 
+                const oosStatus = document.getElementById('i-oos-status').value.trim(); 
+                const oosSchedule = document.getElementById('i-oos-schedule').value.trim(); 
+                const oosRemark = document.getElementById('i-oos-remark').value.trim(); 
+                const reg = document.getElementById('i-reg').value.trim();
+                
+                if (!prod || !oosStatus) return showToast("🚨 상품과 품절여부를 입력하세요.", true);
+                
+                document.getElementById('btn-add').disabled = true;
+                
+                // 🌟 4번 업데이트: 스마트 감지 (품절 탭)
+                let pCode = "-"; let pName = prod;
+                // 👇 여기를 고쳐주세요! (영문+숫자 혼합 코드 감지)
+                if (/^[a-zA-Z0-9]{5,}/.test(prod)) { 
+                    pCode = prod.split(' ')[0];
+                    pName = prod.substring(pCode.length).trim();
+                } else { 
+                    pCode = "000000";
+                    pName = prod.trim();
+                }
+                
+                let pSpec = ""; let supplierName = "";
+                const matchedProd = productsData.find(p => p.code === pCode);
+                if (matchedProd) { 
+                    pSpec = matchedProd.spec || ""; 
+                    if (matchedProd.seller) { 
+                        const matchCode = formatCode3(matchedProd.seller); 
+                        const matchedSupplier = suppliersData.find(s => formatCode3(s.code) === matchCode); 
+                        supplierName = matchedSupplier ? cleanCompanyName(matchedSupplier.name) : `미등록(${matchCode})`; 
+                    } 
+                }
+                
+                const now = new Date(); 
+                const dateStr = now.getFullYear() + "-" + String(now.getMonth()+1).padStart(2,'0') + "-" + String(now.getDate()).padStart(2,'0') + " " + String(now.getHours()).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0');
+
+                try {
+                    const hasExcel = outOfStockData.some(o => o.code === pCode);
+                    if (hasExcel) {
+                        const targetId = 'oos_del_' + pCode; 
+                        const existingDel = entries.find(e => e.id === targetId);
+                        if (existingDel) { 
+                            if (!isTrue(existingDel.del)) {
+                                await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=updateEntry', { 
+                                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: targetId, updates: { del: true } }) 
+                                });
+                            }
+                        } else {
+                            await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=addEntry', { 
+                                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: targetId, boardType: 'oos_del', pCode: pCode, del: true, dateStr: new Date().toISOString() }) 
+                            });
+                        }
+                    }
+                    
+                    const existingManual = entries.find(e => e.boardType === 'oos' && e.pCode === pCode && !isTrue(e.del));
+                    if (existingManual) {
+                        await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=updateEntry', { 
+                            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: existingManual.id, updates: { vCode: oosStatus, vName: oosSchedule, regReason: oosRemark, reg: reg, dateStr: dateStr } }) 
+                        });
+                        showToast("✅ 기존 내역 덮어쓰기 완료.");
+                    } else {
+                        await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=addEntry', { 
+                            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: String(now.getTime()), boardType: currentTab, del: false, check: false, recv: false, pCode: pCode, pName: pName, pSpec: pSpec, vCode: oosStatus, vName: oosSchedule, regReason: oosRemark, qty: "", center: "", supplierName: supplierName, managerName: "", comp: "", compReasonSel: "", compReasonTxt: "", reg: reg, dateStr: dateStr }) 
+                        });
+                        showToast("✅ 등록 완료.");
+                    }
+                    ['i-prod','i-oos-status','i-oos-schedule','i-oos-remark'].forEach(id => document.getElementById(id).value = ""); 
+                    currentPage = 1; 
+                    loadAllData(true);
+                } catch(e) {} 
+                finally { document.getElementById('btn-add').disabled = false; } 
+                return;
+            }
+
+            const prod = document.getElementById('i-prod').value.trim(); 
+            // 🌟 3번 업데이트: 품절 품목 차단 방어벽 철거!
+            const vend = document.getElementById('i-vend').value.trim();
+            const qty = document.getElementById('i-qty').value; 
+            const center = document.getElementById('i-center').value; 
+            const reg = document.getElementById('i-reg').value.trim(); 
+            const reason = document.getElementById('i-reason').value.trim();
+           const desigType = document.getElementById('i-desig-type') ? document.getElementById('i-desig-type').value : ''; // 👈 이 줄 추가
+            
+            if (!qty || parseInt(qty) < 1) return showToast("🚨 수량 입력", true); 
+            if (!center) return showToast("🚨 센터 선택", true); 
+            if (!prod || !vend) return showToast("🚨 상품/거래처 확인", true); 
+            if (currentTab === 'order' && !reason) return showToast("🚨 사유 입력", true);
+            if (currentTab === 'desig' && !desigType) return showToast("🚨 구분을 선택하세요", true); // 👈 이 줄 추가
+            
+            document.getElementById('btn-add').disabled = true;
+            
+            // 🌟 4번 업데이트: 스마트 감지 (주문/지정분 탭)
+            let pCode = "-"; let pName = prod;
+            // 👇 여기도 똑같이 고쳐주세요! (영문+숫자 혼합 코드 감지)
+            if (/^[a-zA-Z0-9]{5,}/.test(prod)) { 
+                pCode = prod.split(' ')[0];
+                pName = prod.substring(pCode.length).trim();
+            } else {
+                pCode = "000000";
+                pName = prod.trim();
+            }
+            
+            // 👇 [강력 차단] 6번 업데이트: '주문요청' 탭에서만 중복 검사 실행! (약국지정분은 제외)
+            if (currentTab === 'order') {
+                const isDuplicate = entries.some(e => 
+                    e.boardType === 'order' && // 다른 탭 데이터와 섞이지 않게 '주문요청' 데이터만 검사
+                    e.reg === currentUser && 
+                    (
+                        (pCode !== "000000" && e.pCode === pCode) || 
+                        (pCode === "000000" && e.pName === pName)
+                    ) && 
+                    e.del !== 'true' && e.del !== true && 
+                    e.recv !== 'true' && e.recv !== true   
+                );
+
+                if (isDuplicate) {
+                    document.getElementById('btn-add').disabled = false; 
+                    return showToast("🚨 이미 요청 진행 중인 동일한 제품이 있습니다.", true);
+                }
+            }
+            // 👆 중복 검사 끝
+            
+            let pSpec = ""; let supplierName = ""; let managerName = "";
+            const matchedProd = productsData.find(p => p.code === pCode);
+            if (matchedProd) { 
+                pSpec = matchedProd.spec || ""; 
+                if (matchedProd.seller) { 
+                    const matchCode = formatCode3(matchedProd.seller); 
+                    const matchedSupplier = suppliersData.find(s => formatCode3(s.code) === matchCode); 
+                    supplierName = matchedSupplier ? cleanCompanyName(matchedSupplier.name) : `미등록(${matchCode})`; 
+                    const matchedManager = managersData.find(m => formatCode3(m.code) === matchCode); 
+                    managerName = matchedManager ? matchedManager.name : `미등록(${matchCode})`; 
+                } 
+            }
+            
+            let cleanVend = vend.replace(/ \[.*?\]$/, '').trim(); 
+            let vendParts = cleanVend.split(" - "); 
+            const vCode = vendParts[0].trim() || '-'; 
+            const vName = vendParts[vendParts.length - 1].trim() || cleanVend; 
+            const cleanCenter = center.split(' ')[1].replace("센터", "") || center;
+            
+            const now = new Date(); 
+            const dateStr = now.getFullYear() + "-" + String(now.getMonth()+1).padStart(2,'0') + "-" + String(now.getDate()).padStart(2,'0') + " " + String(now.getHours()).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0');
+
+            // 👇 이 한 줄이 꼭 들어가야 합니다!
+            const finalReason = currentTab === 'desig' ? desigType : reason;
+
+            try {
+                await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=addEntry', { 
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ id: String(now.getTime()), boardType: currentTab, del: false, check: false, recv: false, pCode: pCode, pName: pName, pSpec: pSpec, qty: qty, vCode: vCode, vName: vName, center: cleanCenter, reg: reg, regReason: finalReason, dateStr: dateStr, supplierName: supplierName, managerName: managerName, comp: "", compReasonSel: "", compReasonTxt: "" }) 
+                });
+                // 👇 초기화 목록에 'i-desig-type'도 추가해 주면 등록 후 드롭다운도 깔끔하게 리셋됩니다!
+                ['i-prod','i-vend','i-qty','i-desig-type'].forEach(id => {
+                    if (document.getElementById(id)) document.getElementById(id).value = ""; 
+                });
+                ['i-prod','i-vend','i-qty'].forEach(id=>document.getElementById(id).value = ""); 
+                if(currentTab==='order') document.getElementById('i-reason').value="";
+                selectedProductIsOOS = false; 
+                showToast("✅ 등록 완료."); 
+                currentPage = 1; 
+                loadAllData(true);
+            } catch(e) {} 
+            finally { document.getElementById('btn-add').disabled = false; }
+        }
+
+        window.toggleCheck = function(id, currentCheck) { 
+            const isChecked = isTrue(currentCheck); 
+            // 🌟 수정됨: 상태 체크박스를 누를 때 'req_reply(재요청 내용)'을 ""(빈칸)으로 같이 덮어씌워서 지워버립니다!
+            let updates = { 
+                check: !isChecked, 
+                comp: !isChecked ? currentUser : "",
+                req_reply: "" 
+            }; 
+            if(currentTab === 'order') { 
+                updates.compReasonSel = document.getElementById(`comp-reason-sel-${id}`)?.value||""; 
+                updates.compReasonTxt = document.getElementById(`comp-reason-txt-${id}`)?.value.trim()||""; 
+            } 
+            updateEntryInDB(id, updates); 
+        };
+        
+        window.toggleRecv = function(id, currentRecv) { 
+            updateEntryInDB(id, { recv: !isTrue(currentRecv) }).then(() => showToast(!isTrue(currentRecv) ? "📦 입고완료" : "입고취소")); 
+        };
+        
+        window.toggleDel = async function(id, currentDel, isExcel = false, pCode = null) {
+            const isDel = isTrue(currentDel);
+            if (isExcel && pCode) {
+                const targetId = 'oos_del_' + pCode; 
+                const existing = entries.find(e => e.id === targetId);
+                if (existing) {
+                    await updateEntryInDB(targetId, { del: !isDel }); 
+                } else {
+                    await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=addEntry', { 
+                        method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify({ id: targetId, boardType: 'oos_del', pCode: pCode, del: true, dateStr: new Date().toISOString() }) 
+                    });
+                }
+                showToast(!isDel ? "🗑️ 숨김 처리" : "✅ 복원됨"); 
+                loadAllData(true); 
+                return;
+            }
+            updateEntryInDB(id, { del: !isDel }).then(() => showToast(!isDel ? "🗑️ 휴지통" : "✅ 복원됨"));
+        };
+        
+        window.updateCompReason = function(id) { 
+            if(currentTab !== 'order') return; 
+            updateEntryInDB(id, { 
+                compReasonSel: document.getElementById(`comp-reason-sel-${id}`).value, 
+                compReasonTxt: document.getElementById(`comp-reason-txt-${id}`).value.trim() 
+            }); 
+        };
+
+        // 🌟 2번 업데이트: 추가 재요청 댓글 달기 및 미체크로 되돌리기 🌟
+        window.addReqReply = function(id) {
+            const txt = document.getElementById(`req-reply-txt-${id}`).value.trim();
+            if(!txt) return showToast("추가 요청 사항을 입력하세요.", true);
+            if(confirm("추가 요청을 등록하고 상태를 담당자의 '미체크' 상태로 되돌리시겠습니까?")) {
+                // check: false (미체크), comp: "" (답변자 비움), req_reply: 댓글내용 전송
+                updateEntryInDB(id, { check: false, comp: "", req_reply: txt }).then(() => {
+                    showToast("🚨 담당자 재확인 요청이 등록되었습니다.");
+                });
+            }
+        };
+
+        function resetPageAndRender() { currentPage = 1; renderTable(); }
+        function changePage(delta) { currentPage += delta; renderTable(); }
+
+        // 🌟 [핵심] 기존 게시판 표 렌더링 시 OOS 뱃지 및 대체품 버튼 부착 🌟
+        function renderTable() {
+            const tbody = document.querySelector('#data-table tbody'); 
+            tbody.innerHTML = '';
+            
+            const filterElement = document.querySelector('input[name="filter"]:checked'); 
+            if (!filterElement) return; 
+            
+            const filter = filterElement.value; 
+            const centerFilter = document.getElementById('f-center').value; 
+            const pageLimit = parseInt(document.getElementById('f-limit').value);
+            
+            let tabEntries = [];
+            if (currentTab === 'oos') {
+                let dbOos = entries.filter(e => e.boardType === 'oos'); 
+                let oosUploader = window.uploadUploader['outofstock'] || '엑셀업로드'; 
+                let oosDate = (document.getElementById('date-outofstock').innerText || '-').split(' (')[0];
+                
+                let excelOos = outOfStockData.map(o => {
+                    const delEntry = entries.find(e => e.boardType === 'oos_del' && e.pCode === o.code); 
+                    const isDeleted = delEntry ? isTrue(delEntry.del) : false; 
+                    let sName = "-"; 
+                    
+                    // 🌟 [핵심] 일단 엑셀에서 읽은 값을 담아둡니다.
+                    let finalName = o.name;
+                    let finalSpec = o.spec;
+
+                    const matchedProd = productsData.find(p => p.code === o.code); 
+                    if (matchedProd) { 
+                        // 🌟 엑셀에 제품명이나 규격이 비어있으면 상품색인부에서 자동으로 땡겨옵니다!
+                        if (!finalName) finalName = matchedProd.name;
+                        if (!finalSpec) finalSpec = matchedProd.spec;
+
+                        if (matchedProd.seller) {
+                            const matchCode = formatCode3(matchedProd.seller); 
+                            const matchedSupplier = suppliersData.find(s => formatCode3(s.code) === matchCode); 
+                            sName = matchedSupplier ? cleanCompanyName(matchedSupplier.name) : `미등록(${matchCode})`; 
+                        }
+                    }
+                    return { id: 'excel_oos_' + o.code, boardType: 'oos', pCode: o.code, pName: finalName || '-', pSpec: finalSpec || '-', oosStatus: o.status, oosSchedule: o.schedule, oosRemark: o.remark, reg: oosUploader, dateStr: oosDate, isExcel: true, check_status: 1, del: isDeleted, supplierName: sName };
+                });
+                tabEntries = [...dbOos, ...excelOos];
+            } else if (currentTab === 'order') {
+                tabEntries = entries.filter(e => !e.boardType || e.boardType === 'order'); 
+            } else {
+                tabEntries = entries.filter(e => e.boardType === 'desig');
+            }
+
+           // 🌟 👇 [여기에 쏙 들어갑니다!] 엑셀과 수기 입력을 정확한 등록 시간순으로 줄 세우기!
+            tabEntries.sort((a, b) => {
+                const timeA = new Date((a.dateStr || a.date || '').replace(/-/g, '/')).getTime() || 0;
+                const timeB = new Date((b.dateStr || b.date || '').replace(/-/g, '/')).getTime() || 0;
+                return timeA - timeB;
+            });
+
+           // 👇 중복 제거 완료! 하나만 남깁니다.
+            let activeEntries = tabEntries.filter(e => !isTrue(e.del));
+            document.getElementById('m-total').innerText = activeEntries.length + "건"; 
+            document.getElementById('m-unchecked').innerText = activeEntries.filter(e => !isTrue(e.check_status) && !isTrue(e.recv)).length + "건";
+            
+            if(currentTab === 'order') {
+                document.getElementById('m-recv').innerText = activeEntries.filter(e => isTrue(e.recv)).length + "건";
+            }
+
+            let displayData = [...tabEntries].reverse(); 
+            
+            if (filter === 'uncheck') displayData = displayData.filter(e => !isTrue(e.del) && !isTrue(e.check_status) && !isTrue(e.recv)); 
+            else if (filter === 'check') displayData = displayData.filter(e => !isTrue(e.del) && isTrue(e.check_status) && !isTrue(e.recv)); 
+            else if (filter === 'recv') displayData = displayData.filter(e => !isTrue(e.del) && isTrue(e.recv)); 
+            else if (filter === 'all') displayData = displayData.filter(e => !isTrue(e.del)); 
+            else if (filter === 'del') displayData = displayData.filter(e => isTrue(e.del));
+            
+            if (centerFilter !== 'all') {
+                displayData = displayData.filter(e => e.center && e.center.includes(centerFilter));
+            }
+
+            // 🌟 5번 업데이트: sMgr(담당자) 변수를 배열에 추가
+            const [sPcode, sPname, sVcode, sVname, sReg, sComp, sMgr] = ['s-pcode', 's-pname', 's-vcode', 's-vname', 's-reg', 's-comp', 's-mgr'].map(id => document.getElementById(id).value.toLowerCase());
+            
+            if (sPcode) displayData = displayData.filter(e => (e.pCode || '').toLowerCase().includes(sPcode)); 
+            if (sPname) displayData = displayData.filter(e => (e.pName || '').toLowerCase().includes(sPname)); 
+            if (sVcode) displayData = displayData.filter(e => (e.vCode || e.oosStatus || '').toLowerCase().includes(sVcode)); 
+            if (sVname) displayData = displayData.filter(e => (e.vName || e.oosSchedule || '').toLowerCase().includes(sVname)); 
+            if (sReg) displayData = displayData.filter(e => (e.reg || '').toLowerCase().includes(sReg)); 
+            if (sComp) displayData = displayData.filter(e => (e.comp || '').toLowerCase().includes(sComp));
+            // 👇 담당자 필터링 조건 1줄 추가!
+            if (sMgr) displayData = displayData.filter(e => (e.managerName || '').toLowerCase().includes(sMgr));
+
+            if (currentTab === 'oos') {
+                const supCounts = {}; 
+                displayData.forEach(e => { 
+                    if (e.supplierName && e.supplierName !== '-') supCounts[e.supplierName] = (supCounts[e.supplierName] || 0) + 1; 
+                });
+                const top10 = Object.entries(supCounts).sort((a,b) => b[1]-a[1]).slice(0, 10);
+                document.getElementById('oos-top-suppliers-list').innerHTML = top10.length > 0 ? top10.map((s, idx) => `<span style="display:inline-block; background:white; border:1px solid var(--border); padding:6px 10px; border-radius:8px; font-size:0.9rem; font-weight:600; box-shadow:var(--shadow-sm);"><span style="color:var(--text-light); font-size:0.8rem; margin-right:4px;">${idx+1}</span>${s[0]} <span style="color:var(--danger); margin-left:4px;">${s[1]}</span></span>`).join('') : '<span style="color:var(--text-light); font-size:0.9rem;">등록내역 없음</span>';
+                document.getElementById('oos-top-suppliers-container').style.display = 'block';
+            } else {
+                document.getElementById('oos-top-suppliers-container').style.display = 'none';
+            }
+
+            const totalRows = displayData.length; 
+            const totalPages = Math.max(1, Math.ceil(totalRows / pageLimit));
+            
+            if (currentPage > totalPages) currentPage = totalPages; 
+            if (currentPage < 1) currentPage = 1;
+            
+            const pagedData = displayData.slice((currentPage - 1) * pageLimit, currentPage * pageLimit);
+
+            document.getElementById('page-info').innerText = `${currentPage} / ${totalPages} 페이지`; 
+            document.getElementById('total-info').innerText = `총 ${totalRows}건`;
+            document.getElementById('btn-prev').disabled = (currentPage === 1); 
+            document.getElementById('btn-next').disabled = (currentPage === totalPages);
+
+            if (pagedData.length === 0) { 
+                document.getElementById('empty-state').style.display = 'block'; 
+                document.getElementById('data-table').style.display = 'none'; 
+            } else {
+                document.getElementById('empty-state').style.display = 'none'; 
+                document.getElementById('data-table').style.display = 'table';
+                
+                pagedData.forEach(e => {
+                    const isAuth = AUTHORIZED_USERS.includes(currentUser); 
+                    const isAuthor = (e.reg === currentUser);
+                    
+                    // 🌟 1번 업데이트: 권한 분리 (답변완료 vs 입고완료) 🌟
+                    // 1. [답변완료] 권한: 기존 유지 (담당자만 가능, 등록자 처리 불가)
+                    let disabledAttrChk = currentTab !== 'desig' ? ((!isAuth) ? 'disabled title="권한 없음"' : (isAuthor ? 'disabled title="등록자 처리 불가"' : '')) : '';
+                    
+                    // 2. [입고완료] 권한: 관리자이거나, '등록자가 등록한 글'이면 허용되도록 분리!
+                    let disabledAttrRecv = '';
+                    if (currentTab !== 'desig') {
+                        if (!isAuth && !isAuthor) {
+                            disabledAttrRecv = 'disabled title="권한 없음"';
+                        }
+                    }
+                    
+                    const delStatus = isTrue(e.del); 
+                    const chkStatus = isTrue(e.check_status); 
+                    const recvStatus = isTrue(e.recv);
+                    
+                    let displayDate = e.dateStr || e.date || '-'; 
+                    if (displayDate !== '-' && displayDate.length >= 10 && !e.isExcel) { 
+                        const parts = displayDate.split(' '); 
+                        if (parts.length === 2) displayDate = `${parts[0].substring(2).replace(/-/g, '.')} ${parts[1]}`; 
+                    }
+                    
+                    const tr = document.createElement('tr');
+                    
+                    if (currentTab === 'oos') {
+                        let actualOosStatus = e.isExcel ? e.oosStatus : (e.vCode || '-'); 
+                        let actualOosSchedule = e.isExcel ? e.oosSchedule : (e.vName || '-'); 
+                        let actualOosRemark = e.isExcel ? e.oosRemark : (e.regReason || '-');
+                        
+                        let isExp = isExpired(actualOosSchedule); 
+                        if (isExp) actualOosSchedule = `<span style="text-decoration:line-through; color:#94A3B8;">${actualOosSchedule}</span> <span style="color:var(--danger); font-size:11px; font-weight:bold;">(만료)</span>`;
+                        
+                        let statusColor = actualOosStatus.includes('중단') ? '#64748B' : 'var(--danger)'; 
+                        if (isExp) statusColor = '#94A3B8';
+                        
+                        let badgeHtml = e.isExcel ? '<span class="badge-center badge-default" style="font-size:11px;">엑셀</span>' : '<span class="badge-center badge-dj" style="font-size:11px; background:#FEF3C7; color:#B45309;">수기입력</span>';
+                        
+                        tr.innerHTML = `
+                            <td><input type="checkbox" ${delStatus ? 'checked' : ''} onchange="window.toggleDel('${e.id}', '${delStatus}', ${e.isExcel ? 'true' : 'false'}, '${e.pCode}')"></td>
+                            <td style="font-size:0.85rem; font-weight:700; color:var(--primary);">${e.supplierName || '-'}</td>
+                            <td style="font-size:0.85rem; color:var(--text-light);">${e.pCode || '-'}</td>
+                            <td style="font-weight:700; color:#1E293B;">${e.pName || '-'}</td>
+                            <td style="font-size:0.9rem; color:#475569;">${e.pSpec || '-'}</td>
+                            <td style="font-weight:700; color:${statusColor};">${actualOosStatus}</td>
+                            <td style="color:#475569; font-weight:600;">${actualOosSchedule}</td>
+                            <td style="font-size:0.85rem; color:var(--text-light);">${actualOosRemark}</td>
+                            <td>${badgeHtml}<br><span style="font-size:0.85rem; font-weight:600; color:var(--primary);">${e.reg || '-'}</span></td>
+                            <td style="font-size:0.85rem; color:var(--text-light);">${displayDate}</td>
+                        `;
+                        if (isExp) { tr.style.backgroundColor = '#F8FAFC'; tr.style.opacity = '0.6'; }
+                    } else {
+                        let vAddr = "주소 없음"; 
+                        if (vendorsData.length > 0) { 
+                            const matchedVend = vendorsData.find(v => v.code == e.vCode); 
+                            if (matchedVend && matchedVend.address) vAddr = matchedVend.address; 
+                        }
+                        
+                        let centerBadgeClass = "badge-default"; 
+                        let centerText = String(e.center || '-');
+                        if (centerText.includes("평택")) centerBadgeClass = "badge-pt"; 
+                        else if (centerText.includes("대전")) centerBadgeClass = "badge-dj"; 
+                        else if (centerText.includes("분당")) centerBadgeClass = "badge-bd"; 
+                        else if (centerText.includes("부천")) centerBadgeClass = "badge-bc";
+                        
+                        let centerHtml = centerText !== '-' ? `<span class="badge-center ${centerBadgeClass}">${centerText}</span>` : '-';
+                        
+                        // 🌟 [추가 1] 배경색 칠하기: 재요청이 있으면 옅은 핑크색, 입고완료면 초록색 배경
+                        if (e.req_reply) {
+                            tr.style.backgroundColor = '#FEF2F2'; 
+                        } else if (recvStatus && currentTab === 'order') {
+                            tr.style.backgroundColor = 'var(--received)';
+                        }
+                        
+                        let mgrDisplay = e.managerName && !e.managerName.includes('미등록') ? `<span style="font-weight:bold; color:var(--primary);">${e.managerName}</span>` : `<span style="color:var(--text-light);">${e.managerName || '-'}</span>`; 
+                        let compDisplay = e.comp ? `<span style="color:${currentTab==='order'?'var(--success)':'var(--desig-color)'}; font-weight:bold;">${e.comp}</span>` : `<span style="color:var(--text-light);">미답변</span>`;
+
+                        if (currentTab === 'order') {
+                            // 🌟 [추가 2] 숨쉬는 뱃지: 제품명 앞에 달릴 애니메이션 뱃지 생성
+                            let reqBadge = e.req_reply ? `<span style="display:inline-block; background:#EF4444; color:white; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:800; margin-right:8px; animation: pulse 1.5s infinite; box-shadow: 0 0 8px rgba(239,68,68,0.4);">🚨 재요청</span>` : '';
+
+                            // 🌟 [추가 3] 품절 여부 스캔 및 품절 뱃지, 사유 생성
+                            let oosData = getOOSInfo(e.pCode);
+                            let oosBadge = '';
+                            let oosReasonHtml = '';
+                            if (oosData) {
+                                let isStop = (oosData.status || "").includes("중단");
+                                let badgeStyle = isStop ? 'background:#F1F5F9; color:#334155; border:1px solid #CBD5E1;' : 'background:#FEE2E2; color:#B91C1C; border:1px solid #FECACA;';
+                                let badgeText = isStop ? '⚫ 공급중단' : '🚨 품절';
+                                oosBadge = `<span style="display:inline-block; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:800; margin-right:6px; ${badgeStyle}">${badgeText}</span>`;
+                                oosReasonHtml = `<div style="font-size:0.8rem; color:var(--danger); margin-top:4px; font-weight:600;">(해지일정: ${oosData.schedule || '미정'}) ${oosData.remark || ''}</div>`;
+                            }
+
+                            // 🌟 [추가 4] 신제품(수기입력) 여부 스캔 및 뱃지 생성
+                            let newBadge = (e.pCode === '000000') ? `<span style="display:inline-block; background:#8B5CF6; color:white; padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:800; margin-right:6px; box-shadow: 0 0 5px rgba(139,92,246,0.3);">🆕 신규</span>` : '';
+
+                            // 🌟 [UI 개선] 등록자 이름에서 '('를 찾아서 그 앞에 줄바꿈(<br>)을 강제로 넣어줍니다!
+                            let displayReg = (e.reg || '-').replace('(', '<br>(');
+
+                            // 🌟 변경: CSS 개선 (글씨 크기, 줄바꿈 방지) + 커스텀 셀렉트 박스 유지
+                            tr.innerHTML = `
+                                <td><input type="checkbox" ${delStatus ? 'checked' : ''} onchange="window.toggleDel('${e.id}', '${delStatus}')"></td>
+                                <td><input type="checkbox" ${chkStatus ? 'checked' : ''} ${delStatus ? 'disabled' : ''} ${disabledAttrChk} onchange="window.toggleCheck('${e.id}', '${chkStatus}')"></td>
+                                <td><input type="checkbox" ${recvStatus ? 'checked' : ''} ${delStatus ? 'disabled' : ''} ${disabledAttrRecv} onchange="window.toggleRecv('${e.id}', '${recvStatus}')"></td>
+                                <td style="color:#0F172A; font-weight:700; font-size:0.85rem;">${e.supplierName || '-'}</td>
+                                <td style="font-size:0.85rem; color:var(--text-light);">${e.pCode === '000000' ? '<span style="color:#8B5CF6;font-weight:700;">수기입력</span>' : (e.pCode || '-')}</td>
+                                
+                                <!-- 🎨 개선 1: 제품명 글씨 축소(0.95rem), 줄간격 늘림(1.3), 단어단위 끊김 방지(keep-all) -->
+                                <td style="font-weight:800; color:#1E293B; font-size:0.95rem; line-height:1.3; word-break:keep-all;">
+                                    ${newBadge}${reqBadge}${oosBadge}${e.pName || '-'}
+                                    ${oosReasonHtml}
+                                </td>
+                                
+                                <td style="font-size:0.9rem; color:#475569;">${e.pSpec || '-'}</td>
+                                <td style="font-weight:800; color:var(--primary); font-size:1.1rem;">${e.qty || '-'}</td>
+                                <td title="${vAddr}" style="font-size:0.85rem; color:var(--text-light); cursor:help; text-decoration:underline dashed #CBD5E1;">${e.vCode || '-'}</td>
+                                
+                                <!-- 🎨 개선 2: 거래처명 단어 안 끊기게 방어(keep-all) -->
+                                <td style="font-weight:600; word-break:keep-all;">${e.vName || '-'}</td>
+                                
+                                <td>${centerHtml}</td>
+                                
+                                <!-- 🎨 개선 3: 등록자를 2줄로 쪼갠 변수(displayReg) 적용 및 줄간격(1.4) -->
+                                <td style="font-weight:600; line-height:1.4;">${displayReg}</td>
+                                
+                                <!-- 🎨 개선 4: 등록사유 줄간격 늘림(1.4), 단어 안 끊기게 방어(keep-all) -->
+                                <td style="font-size:0.85rem; color:#475569; line-height:1.4; word-break:keep-all;">${e.regReason || '-'}</td>
+                                
+                                <td style="font-size:0.85rem; color:var(--text-light);">${displayDate}</td>
+                                <td><div style="line-height:1.5;">${mgrDisplay}<hr style="margin:4px 0; border:0; border-top:1px dashed var(--border);">${compDisplay}</div></td>
+                                <td style="min-width: 140px;">
+                                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                                        <!-- 👇 1. 기존에 등록된 재요청 댓글이 있으면 빨간 박스로 표시 -->
+                                        ${e.req_reply ? `<div style="background:#FEE2E2; padding:6px; border-radius:6px; font-size:0.8rem; color:#B91C1C; text-align:left; word-break:keep-all; line-height:1.4;"><b>🙋 재요청:</b> ${e.req_reply}</div>` : ''}
+                                        
+                                        <!-- 2. 기존 담당자 답변 컨트롤 (셀렉트 박스 & 텍스트) -->
+                                        <select id="comp-reason-sel-${e.id}" style="width:100%; padding:0.5rem; margin:0; font-size:0.85rem;" ${chkStatus || delStatus ? 'disabled' : ''} ${disabledAttrChk} onchange="window.updateCompReason('${e.id}')">
+                                            <option value="" ${!e.compReasonSel ? 'selected' : ''}>- 선택 -</option>
+                                            <option value="주문요청중" ${e.compReasonSel === '주문요청중' ? 'selected' : ''}>주문요청중</option>
+                                            <option value="일시품절" ${e.compReasonSel === '일시품절' ? 'selected' : ''}>일시품절</option>
+                                            <option value="장기품절" ${e.compReasonSel === '장기품절' ? 'selected' : ''}>장기품절</option>
+                                            <option value="생산중단" ${e.compReasonSel === '생산중단' ? 'selected' : ''}>생산중단</option>
+                                            <option value="주문불가" ${e.compReasonSel === '주문불가' ? 'selected' : ''}>주문불가</option>
+                                            <option value="기타(직접입력)" ${e.compReasonSel === '기타(직접입력)' ? 'selected' : ''}>기타(직접입력)</option>
+                                        </select>
+                                        <input type="text" id="comp-reason-txt-${e.id}" value="${e.compReasonTxt || ''}" placeholder="상세사유" class="${chkStatus && !e.compReasonTxt ? 'hidden' : ''}" style="width:100%; padding:0.5rem; margin:0; font-size:0.85rem;" ${chkStatus || delStatus ? 'disabled' : ''} ${disabledAttrChk} onchange="window.updateCompReason('${e.id}')">
+                                        
+                                        <!-- 👇 3. 등록자 본인이고, 현재 답변완료(chkStatus) 상태일 때만 보이는 입력창 -->
+                                        ${(isAuthor && chkStatus) ? `
+                                        <div style="margin-top:4px; padding-top:6px; border-top:1px dashed #CBD5E1;">
+                                            <input type="text" id="req-reply-txt-${e.id}" placeholder="재요청 남기기 (엔터)" style="width:100%; padding:0.4rem; font-size:0.8rem; border-color:#FCA5A5; background:#FEF2F2;" onkeypress="if(event.key === 'Enter') window.addReqReply('${e.id}')">
+                                        </div>` : ''}
+                                    </div>
+                                </td>
+                            `;
+                       // 기존 코드의 } else { 구문 안쪽 tr.innerHTML 부분을 찾아서 교체합니다.
+
+// ... 기존 코드 ...
+} else {
+    // 👇 추가된 부분: 값에 따라 색상 다르게 지정
+    let desigTypeColor = 'var(--primary)'; // 기본 파란색 (제약사입고)
+    if (e.regReason && e.regReason.includes('재고이동')) {
+        desigTypeColor = '#EA580C'; // 진한 주황색 (눈에 잘 띄는 오렌지색)
+    }
+
+    tr.innerHTML = `
+        <td><input type="checkbox" ${delStatus ? 'checked' : ''} onchange="window.toggleDel('${e.id}', '${delStatus}')"></td>
+        <td><input type="checkbox" ${chkStatus ? 'checked' : ''} ${delStatus ? 'disabled' : ''} ${disabledAttrChk} onchange="window.toggleCheck('${e.id}', '${chkStatus}')"></td>
+        <td style="font-weight:700; color:${desigTypeColor};">${e.regReason || '-'}</td> <!-- 👈 색상 변수(${desigTypeColor}) 적용 -->
+        <td style="font-size:0.85rem; color:var(--text-light);">${e.pCode || '-'}</td>
+        <td style="font-weight:700; color:#1E293B;">${e.pName || '-'}</td>
+        <td style="font-size:0.9rem; color:#475569;">${e.pSpec || '-'}</td>
+        <td style="font-weight:800; color:var(--desig-color); font-size:1.1rem;">${e.qty || '-'}</td>
+        <td title="${vAddr}" style="font-size:0.85rem; color:var(--text-light); cursor:help; text-decoration:underline dashed #CBD5E1;">${e.vCode || '-'}</td>
+        <td style="font-weight:600;">${e.vName || '-'}</td>
+        <td>${centerHtml}</td>
+        <td style="font-weight:600;">${e.reg || '-'}</td>
+        <td style="font-size:0.85rem; color:var(--text-light);">${displayDate}</td>
+        <td>${compDisplay}</td>
+    `;
+}
+                    }
+                    if (delStatus) tr.style.opacity = '0.4';
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        // 🌟 복구됨: 엑셀 완벽 내보내기 기능 🌟
+        function exportExcel() {
+            let tabEntries = [];
+            if (currentTab === 'oos') {
+                let dbOos = entries.filter(e => e.boardType === 'oos');
+                let oosUploader = (window.uploadUploader && window.uploadUploader['outofstock']) ? window.uploadUploader['outofstock'] : '엑셀업로드';
+                let oosDate = (document.getElementById('date-outofstock').innerText || '-').split(' (')[0];
+
+                let excelOos = outOfStockData.map((o, i) => {
+                    const delEntry = entries.find(e => e.boardType === 'oos_del' && e.pCode === o.code);
+                    const isDeleted = delEntry ? isTrue(delEntry.del) : false;
+                    let sName = "-";
+                    
+                    // 🌟 [핵심] 일단 엑셀에서 읽은 값을 담아둡니다.
+                    let finalName = o.name;
+                    let finalSpec = o.spec;
+
+                    const matchedProd = productsData.find(p => p.code === o.code);
+                    if (matchedProd) {
+                        // 🌟 엑셀에 제품명이나 규격이 비어있으면 상품색인부에서 자동으로 땡겨옵니다!
+                        if (!finalName) finalName = matchedProd.name;
+                        if (!finalSpec) finalSpec = matchedProd.spec;
+
+                        if (matchedProd.seller) {
+                            const matchCode = formatCode3(matchedProd.seller);
+                            const matchedSupplier = suppliersData.find(s => formatCode3(s.code) === matchCode);
+                            sName = matchedSupplier ? cleanCompanyName(matchedSupplier.name) : `미등록(${matchCode})`;
+                        }
+                    }
+                    return { 
+                        id: 'excel_oos_' + o.code, boardType: 'oos', pCode: o.code, pName: finalName || '-', 
+                        pSpec: finalSpec || '-', oosStatus: o.status, oosSchedule: o.schedule, 
+                        oosRemark: o.remark, reg: oosUploader, dateStr: oosDate, 
+                        isExcel: true, check_status: 1, del: isDeleted, supplierName: sName 
+                    };
+                });
+                tabEntries = [...dbOos, ...excelOos];
+            } else if (currentTab === 'order') {
+                tabEntries = entries.filter(e => !e.boardType || e.boardType === 'order');
+            } else {
+                tabEntries = entries.filter(e => e.boardType === 'desig');
+            }
+
+            if(tabEntries.length === 0) return showToast("⚠️ 내보낼 데이터 없음", true);
+
+            const filterElement = document.querySelector('input[name="filter"]:checked');
+            const filter = filterElement ? filterElement.value : 'all';
+            const centerFilter = document.getElementById('f-center').value;
+
+            let fEntries = [...tabEntries].reverse();
+            if(filter === 'uncheck') fEntries = fEntries.filter(e => !isTrue(e.del) && !isTrue(e.check_status) && !isTrue(e.recv));
+            else if(filter === 'check') fEntries = fEntries.filter(e => !isTrue(e.del) && isTrue(e.check_status) && !isTrue(e.recv));
+            else if(filter === 'recv') fEntries = fEntries.filter(e => !isTrue(e.del) && isTrue(e.recv));
+            else if(filter === 'all') fEntries = fEntries.filter(e => !isTrue(e.del));
+            else if(filter === 'del') fEntries = fEntries.filter(e => isTrue(e.del));
+            
+            if(centerFilter !== 'all') {
+                fEntries = fEntries.filter(e => e.center && e.center.includes(centerFilter));
+            }
+
+            const sPcode = document.getElementById('s-pcode').value.toLowerCase();
+            const sPname = document.getElementById('s-pname').value.toLowerCase();
+            const sVcode = document.getElementById('s-vcode').value.toLowerCase();
+            const sVname = document.getElementById('s-vname').value.toLowerCase();
+            const sReg = document.getElementById('s-reg').value.toLowerCase();
+            const sComp = document.getElementById('s-comp').value.toLowerCase();
+            // 🌟 5번 업데이트: 엑셀 다운로드용 담당자 필터 추가
+            const sMgr = document.getElementById('s-mgr').value.toLowerCase();
+
+            if(sPcode) fEntries = fEntries.filter(e => (e.pCode||'').toLowerCase().includes(sPcode));
+            if(sPname) fEntries = fEntries.filter(e => (e.pName||'').toLowerCase().includes(sPname));
+            if(sVcode) fEntries = fEntries.filter(e => (e.vCode||e.oosStatus||'').toLowerCase().includes(sVcode));
+            if(sVname) fEntries = fEntries.filter(e => (e.vName||e.oosSchedule||'').toLowerCase().includes(sVname));
+            if(sReg) fEntries = fEntries.filter(e => (e.reg||'').toLowerCase().includes(sReg));
+            if(sComp) fEntries = fEntries.filter(e => (e.comp||'').toLowerCase().includes(sComp));
+            if(sMgr) fEntries = fEntries.filter(e => (e.managerName||'').toLowerCase().includes(sMgr));
+
+            if(fEntries.length === 0) return showToast("⚠️ 조건에 맞는 데이터 없음", true);
+            
+            const exportData = fEntries.map(e => {
+                if (currentTab === 'oos') {
+                    let actualOosStatus = e.isExcel ? e.oosStatus : (e.vCode || '-');
+                    let actualOosSchedule = e.isExcel ? e.oosSchedule : (e.vName || '-');
+                    let actualOosRemark = e.isExcel ? e.oosRemark : (e.regReason || '-');
+                    let expiredText = isExpired(actualOosSchedule) ? " (기한만료)" : "";
+                    return { 
+                        "삭제여부": e.isExcel ? "-" : (isTrue(e.del) ? "🗑️삭제됨" : "정상"), 
+                        "매입처": e.supplierName || '-', 
+                        "코드": e.pCode || '-', 
+                        "제품명": e.pName || '-', 
+                        "규격": e.pSpec || '-', 
+                        "품절여부": actualOosStatus, 
+                        "해지일정여부": actualOosSchedule + expiredText, 
+                        "비고": actualOosRemark, 
+                        "등록자": e.reg || '-', 
+                        "등록일시": e.dateStr || e.date || '-' 
+                    };
+                }
+
+                let statusStr = "미체크";
+                if (isTrue(e.check_status)) statusStr = isTrue(e.recv) ? "✅입고완료" : "✅답변완료";
+
+                // 🌟 [추가] 상품색인부에서 해당 제품의 기준가 찾아오기
+                let productPrice = 0;
+                if (e.pCode) {
+                    const matchedProd = productsData.find(p => p.code === e.pCode);
+                    // 만약 products 데이터에 가격 필드가 있다면 가져옵니다 (예: price 또는 standardPrice 등)
+                    // 데이터 필드명에 맞춰서 수정하시면 됩니다! (보통 price 또는 cost 등으로 저장됨)
+                    if (matchedProd) {
+                        productPrice = Number(matchedProd.price || matchedProd.standardPrice || 0);
+                    }
+                }
+                
+                let base = { 
+                    "삭제여부": isTrue(e.del) ? "🗑️삭제됨" : "정상", 
+                    "진행상태": statusStr, 
+                    "제품코드": e.pCode || '-', 
+                    "제품명": e.pName || '-', 
+                    "규격": e.pSpec || '-', 
+                    "기준가": productPrice, // 👈 여기에 기준가 추가!
+                    "수량": Number(e.qty) || 0, 
+                    "거래처코드": e.vCode || '-', 
+                    "거래처명": e.vName || '-', 
+                    "센터": e.center || '-', 
+                    "등록자": e.reg || '-', 
+                    "등록일시": e.dateStr || e.date || '-' 
+                };
+
+                if(currentTab === 'order') {
+                    return { 
+                        "매입처": e.supplierName || '-', 
+                        ...base, 
+                        "담당자": e.managerName || '-', 
+                        "등록 사유": e.regReason || '-', 
+                        "답변자": e.comp || '-', 
+                        "비고(사유)": [e.compReasonSel, (e.compReasonTxt || e.compReason)].filter(Boolean).join(" / ") || '-' 
+                    };
+                } else {
+                    return { ...base, "완료자": e.comp || '-' };
+                }
+            });
+
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "내역");
+            const dateStr = new Date().toISOString().slice(0,10);
+            XLSX.writeFile(wb, `TJPHARM_${currentTab==='order'?'주문':(currentTab==='desig'?'지정분':'품절공지')}_${dateStr}.xlsx`);
+        }
+
+        // 🌟 자동완성 검색 기능 🌟
+        function setupAutocomplete(inputId, listId, dataArrayFunc, searchKeys, displayFunc, onSelect) {
+            const input = document.getElementById(inputId); 
+            const list = document.getElementById(listId); 
+            let currentFocus = -1;
+            
+            input.addEventListener('input', function() {
+                if (inputId === 'i-prod') { 
+                    selectedProductIsOOS = false; 
+                    document.getElementById('btn-add').disabled = false; 
+                }
+                const val = this.value.trim().toLowerCase().replace(/\^/g, ' '); 
+                const searchTerms = val.split(/\s+/).filter(t => t.length > 0); 
+                list.innerHTML = ''; 
+                currentFocus = -1;
+                
+                if (searchTerms.length === 0) { list.style.display = 'none'; return; }
+                
+                const matches = dataArrayFunc().filter(item => { 
+                    if (!item) return false; 
+                    const combinedStr = searchKeys.map(k => String(item[k] || '')).join(' ').toLowerCase(); 
+                    return searchTerms.every(term => combinedStr.includes(term)); 
+                }).slice(0, 50);
+                
+                if (matches.length > 0) { 
+                    matches.forEach(item => { 
+                        const li = document.createElement('li'); 
+                        li.innerHTML = displayFunc(item); 
+                        li.onclick = () => { onSelect(item); list.style.display = 'none'; }; 
+                        list.appendChild(li); 
+                    }); 
+                    list.style.display = 'block'; 
+                } else {
+                    list.style.display = 'none';
+                }
+            });
+            
+            document.addEventListener('click', e => { 
+                if (e.target !== input) list.style.display = 'none'; 
+            });
+            
+            input.addEventListener('keydown', function(e) { 
+                let items = list.getElementsByTagName('li'); 
+                if (!items || items.length === 0) return; 
+                if (e.key === "ArrowDown") { currentFocus++; addActive(items); } 
+                else if (e.key === "ArrowUp") { currentFocus--; addActive(items); } 
+                else if (e.key === "Enter") { e.preventDefault(); if (currentFocus > -1 && items[currentFocus]) items[currentFocus].click(); } 
+            });
+            
+            function addActive(items) { 
+                if (!items) return false; 
+                Array.from(items).forEach(i => i.classList.remove("autocomplete-active")); 
+                if (currentFocus >= items.length) currentFocus = 0; 
+                if (currentFocus < 0) currentFocus = (items.length - 1); 
+                items[currentFocus].classList.add("autocomplete-active"); 
+                items[currentFocus].scrollIntoView({ block: "nearest" }); 
+            }
+        }
+
+       window.addEventListener('DOMContentLoaded', function() {
+            setupAutocomplete('i-vend', 'i-vend-list', 
+                () => vendorsData.filter(v => { 
+                    const code = v.code ? v.code.toString().toUpperCase() : ""; 
+                    const name = v.name ? v.name.toString() : ""; 
+                    if (name.includes('(특별)')) return false; 
+                    return code.startsWith('7') || code.startsWith('S') || code.startsWith('M'); 
+                }), 
+                ['name', 'region', 'address', 'code', 'center'], 
+                (item) => `<strong style="font-size:0.95rem;">${item.name}</strong> <span style="color:var(--text-light); font-size:0.85rem; margin-left:6px;">${item.center ? `<span style="color:var(--primary);font-weight:bold;">[${item.center}]</span> ` : ''}${item.region} | ${item.code} | <span style="color:#94A3B8;">${item.address || '주소 정보 없음'}</span></span>`, 
+                (item) => { document.getElementById('i-vend').value = `${item.code} - ${item.name}`; }
+            );
+
+            setupAutocomplete('i-prod', 'i-prod-list', 
+                () => productsData.filter(p => p.standardCode && String(p.standardCode).trim() !== ""), 
+                ['name', 'code', 'spec'], 
+               (item) => { 
+                    let sName = "-"; let mName = "-"; 
+                    if (item.seller) { 
+                        const dCode = formatCode3(item.seller); const sup = suppliersData.find(s => formatCode3(s.code) === dCode); sName = sup ? cleanCompanyName(sup.name) : `미등록(${dCode})`; 
+                        const mgr = managersData.find(m => formatCode3(m.code) === dCode); mName = mgr ? mgr.name : `미등록(${dCode})`; 
+                    } 
+                    const oos = getOOSInfo(item.code); let oosBadge = "", oosInfo = ""; 
+                    if (oos && currentTab === 'order') { 
+                        const rawStatus = (oos.status || "품절").trim(); 
+                        if (rawStatus.includes("중단")) { oosBadge = `[⚫ 중단] `; oosInfo = `<br><span style="color:#64748B; font-size:11px;">🚫 판매중단 | 해지일정: ${oos.schedule || '해당없음'}</span>`; } 
+                        else { oosBadge = `<span style="color:var(--danger);">[🔴 품절]</span> `; oosInfo = `<br><span style="color:var(--danger); font-size:11px;">🚨 품절 | 해지일정: ${oos.schedule || '미정'}</span>`; } 
+                    } 
+                    return `<div style="padding: 4px 0; line-height: 1.5;"><div>${oosBadge}<strong>${item.name}</strong></div><div style="font-size: 12px; color: var(--text-light);">코드: ${item.code} | 규격: ${item.spec || '-'}</div><div style="font-size: 11px; color: var(--primary); font-weight:600;">🏢 ${sName} | 👨‍💼 ${mName}</div>${oosInfo}</div>`; 
+                }, 
+                (item) => { 
+                    document.getElementById('i-prod').value = `${item.code} ${item.name}`; 
+                    const oos = getOOSInfo(item.code); const addBtn = document.getElementById('btn-add'); 
+                    if (oos && currentTab === 'order') { 
+                        selectedProductIsOOS = true; 
+                        showToast(`🚨 품절 품목입니다 (해지: ${oos.schedule || '미정'}). 그래도 주문은 가능합니다.`, false); 
+                        // 🌟 차단 해제: 버튼을 잠그지 않고 텍스트만 유지합니다!
+                        addBtn.disabled = false; 
+                        addBtn.innerText = `➕ 신규 주문 라인 추가`; 
+                    } 
+                    else if (oos && currentTab === 'oos') { document.getElementById('i-oos-status').value = oos.status || ''; document.getElementById('i-oos-schedule').value = oos.schedule || ''; document.getElementById('i-oos-remark').value = oos.remark || ''; } 
+                }
+            );
+        });
+        
+        function showToast(msg, isError=false) { 
+            const container = document.getElementById('toast-container'); 
+            const toast = document.createElement('div'); 
+            toast.className = 'toast'; 
+            if (isError) toast.style.backgroundColor = 'var(--danger)'; 
+            toast.innerText = msg; 
+            container.appendChild(toast); 
+            setTimeout(() => toast.classList.add('show'), 10); 
+            setTimeout(() => { 
+                toast.classList.remove('show'); 
+                setTimeout(() => container.removeChild(toast), 300); 
+            }, 3000); 
+        }
+
+// 🌟 메인 화면 탭 직접 드래그 앤 드롭 및 자동 저장 로직 🌟
+        window.addEventListener('DOMContentLoaded', function() {
+            const tabContainer = document.getElementById('main-tab-container');
+            const draggables = tabContainer.querySelectorAll('.tab-btn');
+
+            draggables.forEach(draggable => {
+                draggable.draggable = true; // HTML 수정 없이 JS로 드래그 활성화
+                
+                draggable.addEventListener('dragstart', () => {
+                    draggable.classList.add('dragging');
+                });
+                
+                draggable.addEventListener('dragend', () => {
+                    draggable.classList.remove('dragging');
+                    saveDirectTabOrder(); // 마우스를 놓는 순간 바로 순서 저장!
+                });
+            });
+
+            tabContainer.addEventListener('dragover', e => {
+                e.preventDefault(); // 드롭을 허용하기 위해 필수
+                const afterElement = getDragAfterTabElement(tabContainer, e.clientX);
+                const draggable = document.querySelector('.tab-btn.dragging');
+                
+                if (draggable) {
+                    if (afterElement == null) {
+                        tabContainer.appendChild(draggable);
+                    } else {
+                        tabContainer.insertBefore(draggable, afterElement);
+                    }
+                }
+            });
+        });
+
+        // 가로(X축)를 기준으로 마우스 위치를 계산하여 들어갈 자리를 찾는 함수
+        function getDragAfterTabElement(container, x) {
+            const draggableElements = [...container.querySelectorAll('.tab-btn:not(.dragging)')];
+
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = x - box.left - box.width / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        // 재배치된 탭 순서를 서버에 즉시 저장하는 함수
+        async function saveDirectTabOrder() {
+            const tabContainer = document.getElementById('main-tab-container');
+            // tab-order, tab-desig 등에서 'tab-' 글자를 떼어내고 순서 배열 생성
+            const newOrder = [...tabContainer.querySelectorAll('.tab-btn')].map(btn => btn.id.replace('tab-', ''));
+            
+            try {
+                // 서버에 순서 저장
+                await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=addPin', { 
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ pin: currentPin, name: currentUser, approved: true, tabs: newOrder.join(',') }) 
+                });
+                
+               // 로컬 데이터 즉각 업데이트 (새로고침 전까지 유지되도록)
+                const p = pins.find(p => p.pin === currentPin);
+                if (p) p.tabs = newOrder.join(',');
+                
+                showToast(`✅ 탭 순서가 자동으로 저장되었습니다.`);
+            } catch(e) {
+                showToast("❌ 순서 저장에 실패했습니다.", true);
+            }
+        } // 👈 여기가 기존 코드의 끝입니다.
+
+        // 🌟 👇 여기에 방금 만든 다이어트 함수를 쏙 넣으시면 됩니다! 👇 🌟
+        function cleanIngredient(rawIngr) {
+            if (!rawIngr || rawIngr === '데이터 없음' || rawIngr === '-') return '-';
+            let parts = rawIngr.split('|');
+            let cleaned = parts.map(p => p.replace(/\[.*?\]/g, '').trim());
+            let unique = [...new Set(cleaned)].filter(p => p !== '');
+            return unique.join(', ');
+        }
+    </script>
+    <!-- 🔼 기존 자바스크립트 코드의 끝 -->
+
+    <!-- 🌟 👇 새로 추가할 이미지 원본 팝업용 모달 (여기에 딱 들어갑니다!) 👇 🌟 -->
+    <div id="image-popup-overlay" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:99999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);" onclick="closeImagePopup()">
+        <div style="background:white; padding:20px; border-radius:16px; max-width:90%; max-height:90vh; display:flex; flex-direction:column; align-items:center; position:relative; box-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);" onclick="event.stopPropagation()">
+            <button onclick="closeImagePopup()" style="position:absolute; top:10px; right:10px; width:auto; padding:4px 12px; background:#CBD5E1; color:white; border-radius:6px; font-weight:bold; border:none; cursor:pointer;">닫기 ✖</button>
+            <h3 style="margin:0 0 15px 0; font-size:1.1rem; color:#1E293B;">💊 의약품 성상 이미지 확대보기</h3>
+            <div style="overflow:auto; max-width:100%; max-height:75vh; display:flex; justify-content:center;">
+                <img id="popup-target-img" src="" style="max-width:100%; height:auto; object-fit:contain; border-radius:8px; border:1px solid #E2E8F0;">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 팝업 열기 함수
+        function openImagePopup(imgSrc) {
+            if (!imgSrc || imgSrc === '데이터 없음' || imgSrc === '-') return;
+            document.getElementById('popup-target-img').src = imgSrc;
+            document.getElementById('image-popup-overlay').classList.remove('hidden');
+        }
+        // 팝업 닫기 함수
+        function closeImagePopup() {
+            document.getElementById('image-popup-overlay').classList.add('hidden');
+        }
+    </script>
+    <!-- 🔼 여기까지 추가 완료 -->
+
+</body>
+</html>
+</body>
+</html>
