@@ -1626,7 +1626,7 @@
 
                 try {
                     const apiKey1 = "RZuGihPu%2F6CrX4SlBMzIx4wHhKMRhzBzkTKPGlBQcoI0g1X%2Bcn%2Fn%2FbHJMiAWH7TwnqqEaKIZfjBnfXVF1o4bLA%3D%3D"; 
-                    const res = await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=syncMfdsData', {
+                    const res = await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=syncMfdsData', {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ apiKey1: apiKey1, apiKey2: apiKey1, productCodes: [prod] })
                     });
@@ -1696,7 +1696,7 @@
             const totalEtcCount = etcProducts.length;
 
             try {
-                const res = await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=syncMfdsData', {
+                const res = await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=syncMfdsData', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ apiKey1: apiKey1, apiKey2: apiKey2, productCodes: targetProducts })
                 });
@@ -1736,7 +1736,7 @@
             btn.innerText = "⏳ 초기화 중...";
 
             try {
-                await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=resetSyncData', { 
+                await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=resetSyncData', { 
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) 
                 });
                 showToast("✅ 동기화 데이터가 초기화되었습니다. 백그라운드에서 다시 수집을 시작합니다.");
@@ -1803,7 +1803,7 @@
             }
             
             try {
-                const res = await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=addPin', { 
+                const res = await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=addPin', { 
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, 
                     body: JSON.stringify({ pin: currentPin, name: finalName, approved: false }) 
                 });
@@ -1894,7 +1894,7 @@
             if (tabs.length === 0) return showToast("⚠️ 최소 1개 이상의 탭 권한을 부여해야 합니다.", true);
             
             try {
-                await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=addPin', { 
+                await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=addPin', { 
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, 
                     body: JSON.stringify({ pin: pin, name: name, approved: true, tabs: tabs.join(',') }) 
                 });
@@ -1907,7 +1907,7 @@
 
         window.deletePin = async function(pin, name) {
             if(confirm(`[${name}] 삭제하시겠습니까?`)) {
-                await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=deletePin', { 
+                await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=deletePin', { 
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, 
                     body: JSON.stringify({ pin: pin }) 
                 });
@@ -1918,7 +1918,7 @@
 
         async function clearData(action) {
             if(confirm(`🚨 전체 초기화됩니다. 계속하시겠습니까?`)) {
-                await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=' + action, { 
+                await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=' + action, { 
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, 
                     body: JSON.stringify({}) 
                 });
@@ -1981,7 +1981,7 @@
            try { 
                 // Promise.all 대신 for...of 문을 사용하여 순차적으로 전송
                 for (const r of payloads) {
-                    await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=addEntry', { 
+                    await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=addEntry', { 
                         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(r) 
                     });
                 }
@@ -2146,7 +2146,7 @@
                             const isLast = (i + BATCH_SIZE) >= totalRows;
                             const uploadPayload = isLast ? (dateStr + "|" + currentUser) : null;
                             
-                            await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=uploadMaster', { 
+                            await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=uploadMaster', { 
                                 method: 'POST', headers: { 'Content-Type': 'application/json' }, 
                                 body: JSON.stringify({ table: tableName, rows: chunk, uploadDate: uploadPayload, isAppend: isAppend }) 
                             });
@@ -2186,7 +2186,7 @@
 
         async function loadAllData(isSilent = false) {
             try {
-                const res = await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=getAll'); 
+                const res = await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=getAll'); 
                 const data = await res.json();
                 
                 productsData = data.products || []; 
@@ -2254,7 +2254,7 @@
                 entries[entryIndex] = { ...entries[entryIndex], ...localUpdates }; 
             }
             renderTable();
-            return fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=updateEntry', { 
+            return fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=updateEntry', { 
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, updates: updates }) 
             }).catch(e => showToast("업데이트 실패", true));
         }
@@ -2306,12 +2306,12 @@
                         const existingDel = entries.find(e => e.id === targetId);
                         if (existingDel) { 
                             if (!isTrue(existingDel.del)) {
-                                await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=updateEntry', { 
+                                await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=updateEntry', { 
                                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: targetId, updates: { del: true } }) 
                                 });
                             }
                         } else {
-                            await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=addEntry', { 
+                            await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=addEntry', { 
                                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: targetId, boardType: 'oos_del', pCode: pCode, del: true, dateStr: new Date().toISOString() }) 
                             });
                         }
@@ -2319,12 +2319,12 @@
                     
                     const existingManual = entries.find(e => e.boardType === 'oos' && e.pCode === pCode && !isTrue(e.del));
                     if (existingManual) {
-                        await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=updateEntry', { 
+                        await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=updateEntry', { 
                             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: existingManual.id, updates: { vCode: oosStatus, vName: oosSchedule, regReason: oosRemark, reg: reg, dateStr: dateStr } }) 
                         });
                         showToast("✅ 기존 내역 덮어쓰기 완료.");
                     } else {
-                        await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=addEntry', { 
+                        await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=addEntry', { 
                             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: String(now.getTime()), boardType: currentTab, del: false, check: false, recv: false, pCode: pCode, pName: pName, pSpec: pSpec, vCode: oosStatus, vName: oosSchedule, regReason: oosRemark, qty: "", center: "", supplierName: supplierName, managerName: "", comp: "", compReasonSel: "", compReasonTxt: "", reg: reg, dateStr: dateStr }) 
                         });
                         showToast("✅ 등록 완료.");
@@ -2411,7 +2411,7 @@
             const finalReason = currentTab === 'desig' ? desigType : reason;
 
             try {
-                await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=addEntry', { 
+                await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=addEntry', { 
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, 
                     body: JSON.stringify({ id: String(now.getTime()), boardType: currentTab, del: false, check: false, recv: false, pCode: pCode, pName: pName, pSpec: pSpec, qty: qty, vCode: vCode, vName: vName, center: cleanCenter, reg: reg, regReason: finalReason, dateStr: dateStr, supplierName: supplierName, managerName: managerName, comp: "", compReasonSel: "", compReasonTxt: "" }) 
                 });
@@ -2456,7 +2456,7 @@
                 if (existing) {
                     await updateEntryInDB(targetId, { del: !isDel }); 
                 } else {
-                    await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=addEntry', { 
+                    await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=addEntry', { 
                         method: 'POST', headers: { 'Content-Type': 'application/json' }, 
                         body: JSON.stringify({ id: targetId, boardType: 'oos_del', pCode: pCode, del: true, dateStr: new Date().toISOString() }) 
                     });
@@ -3125,7 +3125,7 @@
             
             try {
                 // 서버에 순서 저장
-                await fetch('https://tjpharm2038-api.yellowcuppy.workers.dev/?action=addPin', { 
+                await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=addPin', { 
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, 
                     body: JSON.stringify({ pin: currentPin, name: currentUser, approved: true, tabs: newOrder.join(',') }) 
                 });
