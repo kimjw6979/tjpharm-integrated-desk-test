@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TJPHARM 인트로 및 로그인</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <style>
+        /* 기본 배경 및 폰트 */
+        body { font-family: 'Pretendard', sans-serif; margin: 0; background-color: #F8FAFC; color: #1E293B; height: 100vh; display: flex; }
+        
+        /* 로그인 화면 레이아웃 (기존 디자인 그대로) */
+        #login-wrapper { width: 100%; display: flex; z-index: 9000; }
+        .login-image-side { flex: 1; background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; padding: 3rem; text-align: center; position: relative; overflow: hidden; }
+        .login-image-side::after { content: ''; position: absolute; width: 800px; height: 800px; background: rgba(255,255,255,0.06); border-radius: 50%; top: -150px; right: -150px; }
+        .login-image-side h1 { font-size: 3.6rem; margin-bottom: 1rem; z-index: 1; font-weight: 800; }
+        .login-image-side p { font-size: 1.4rem; z-index: 1; margin: 0; font-weight: 400; color: rgba(255,255,255,0.9); }
+        
+        .login-form-side { flex: 1; display: flex; justify-content: center; align-items: center; padding: 2rem; }
+        .login-form-container { background: white; padding: 4.5rem 3.5rem; border-radius: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border: 1px solid #E2E8F0; width: 100%; max-width: 420px; text-align: center; }
+        
+        input { width: 100%; padding: 0.9rem 1rem; margin-bottom: 1.5rem; border: 1px solid #E2E8F0; border-radius: 10px; box-sizing: border-box; font-size: 1.2rem; text-align: center; letter-spacing: 0.8rem; }
+        input:focus { outline: none; border-color: #2563EB; box-shadow: 0 0 0 3px #BFDBFE; }
+        button { width: 100%; padding: 1rem; background-color: #2563EB; color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 1.1rem; font-weight: 600; transition: all 0.2s; }
+        button:hover { background-color: #1D4ED8; transform: translateY(-1px); }
+        button:disabled { background-color: #CBD5E1; cursor: not-allowed; }
+        
+        /* 에러 메시지용 */
+        #error-msg { color: #EF4444; font-size: 0.9rem; font-weight: 600; margin-top: 10px; display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="login-wrapper">
+        <div class="login-image-side">
+            <h1>TJPHARM<br>통합 업무 데스크</h1>
+            <p>보안 강화를 위한 테스트 버전 입니다</p>
+        </div>
+        
+        <div class="login-form-side">
+            <div class="login-form-container">
+                <h3 style="font-size:1.5rem; margin-bottom:0.5rem; margin-top:0;">🔐 시스템 접속</h3>
+                <p style="margin-bottom: 2.5rem; color: #64748B;">개인 접속 PIN <strong>4자리(숫자)</strong>를 입력하세요.</p>
+                
+                <input type="password" id="user-pin" placeholder="1 2 3 4" maxlength="4" onkeypress="if(event.key === 'Enter') login()">
+                <button id="btn-login" onclick="login()">입장하기</button>
+                <div id="error-msg">⚠️ 미등록 PIN이거나 권한이 없습니다.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function login() {
+            const pin = document.getElementById('user-pin').value;
+            const errorMsg = document.getElementById('error-msg');
+            const btn = document.getElementById('btn-login');
+
+            if (pin.length !== 4 || isNaN(pin)) {
+                errorMsg.innerText = "⚠️ PIN 번호는 숫자 4자리로 입력해야 합니다.";
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            btn.innerText = "보안 데이터 확인 중...";
+            btn.disabled = true;
+            errorMsg.style.display = 'none';
+
+            try {
+                // 백엔드에 열쇠(PIN)를 보내서 확인 요청
+                const res = await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=getAll&key=' + pin);
+                
+                if (res.ok) {
+                    // 통과! 브라우저 금고(Session Storage)에 열쇠를 몰래 숨겨둠
+                    sessionStorage.setItem('tjpharm_auth_key', pin);
+                    
+                    // 사내 업무 데스크로 화면 이동 (가짜 전환이 아닌 진짜 페이지 이동)
+                    window.location.href = 'app.html';
+                } else {
+                    throw new Error("Unauthorized");
+                }
+            } catch (error) {
+                // 백엔드에서 쫓겨남 (401 에러)
+                errorMsg.innerText = "⚠️ 미등록 PIN이거나 권한이 없습니다.";
+                errorMsg.style.display = 'block';
+                btn.innerText = "입장하기";
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
