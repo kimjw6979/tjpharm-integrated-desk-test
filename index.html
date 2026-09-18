@@ -9,24 +9,38 @@
         /* 기본 배경 및 폰트 */
         body { font-family: 'Pretendard', sans-serif; margin: 0; background-color: #F8FAFC; color: #1E293B; height: 100vh; display: flex; }
         
-        /* 로그인 화면 레이아웃 (기존 디자인 그대로) */
+        /* 로그인 화면 레이아웃 */
         #login-wrapper { width: 100%; display: flex; z-index: 9000; }
         .login-image-side { flex: 1; background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; padding: 3rem; text-align: center; position: relative; overflow: hidden; }
         .login-image-side::after { content: ''; position: absolute; width: 800px; height: 800px; background: rgba(255,255,255,0.06); border-radius: 50%; top: -150px; right: -150px; }
-        .login-image-side h1 { font-size: 3.6rem; margin-bottom: 1rem; z-index: 1; font-weight: 800; }
+        .login-image-side h1 { font-size: 3.6rem; margin-bottom: 1rem; z-index: 1; font-weight: 800; letter-spacing: -0.03em; }
         .login-image-side p { font-size: 1.4rem; z-index: 1; margin: 0; font-weight: 400; color: rgba(255,255,255,0.9); }
+        
+        /* 🌟 로고 이미지 스타일 복구 */
+        .login-image-side img { width: 100%; max-width: 380px; margin-top: 3rem; border-radius: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15); z-index: 1; object-fit: cover; }
         
         .login-form-side { flex: 1; display: flex; justify-content: center; align-items: center; padding: 2rem; }
         .login-form-container { background: white; padding: 4.5rem 3.5rem; border-radius: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border: 1px solid #E2E8F0; width: 100%; max-width: 420px; text-align: center; }
         
         input { width: 100%; padding: 0.9rem 1rem; margin-bottom: 1.5rem; border: 1px solid #E2E8F0; border-radius: 10px; box-sizing: border-box; font-size: 1.2rem; text-align: center; letter-spacing: 0.8rem; }
         input:focus { outline: none; border-color: #2563EB; box-shadow: 0 0 0 3px #BFDBFE; }
+        
         button { width: 100%; padding: 1rem; background-color: #2563EB; color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 1.1rem; font-weight: 600; transition: all 0.2s; }
         button:hover { background-color: #1D4ED8; transform: translateY(-1px); }
         button:disabled { background-color: #CBD5E1; cursor: not-allowed; }
         
-        /* 에러 메시지용 */
         #error-msg { color: #EF4444; font-size: 0.9rem; font-weight: 600; margin-top: 10px; display: none; }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            #login-wrapper { flex-direction: column; overflow-y: auto; height: 100%; }
+            .login-image-side { padding: 2rem 1rem; flex: 0 0 auto; }
+            .login-image-side h1 { font-size: 1.8rem; margin-bottom: 0.3rem;} 
+            .login-image-side p { font-size: 0.9rem; } 
+            .login-image-side img { max-width: 160px; margin-top: 1rem; border-radius: 12px; }
+            .login-form-side { padding: 1.5rem 1rem 3rem 1rem; align-items: flex-start; } 
+            .login-form-container { box-shadow: none; border: none; padding: 0; }
+        }
     </style>
 </head>
 <body>
@@ -35,6 +49,8 @@
         <div class="login-image-side">
             <h1>TJPHARM<br>통합 업무 데스크</h1>
             <p>보안 강화를 위한 테스트 버전 입니다</p>
+            <!-- 🌟 이미지 태그 복구 (logo.png가 같은 폴더에 있어야 합니다) -->
+            <img src="logo.png" alt="TJ Pharm Logo" onerror="this.style.display='none';">
         </div>
         
         <div class="login-form-side">
@@ -45,15 +61,31 @@
                 <input type="password" id="user-pin" placeholder="1 2 3 4" maxlength="4" onkeypress="if(event.key === 'Enter') login()">
                 <button id="btn-login" onclick="login()">입장하기</button>
                 <div id="error-msg">⚠️ 미등록 PIN이거나 권한이 없습니다.</div>
+
+                <!-- 🌟 신규 권한 승인 요청 UI 복구 -->
+                <div id="register-section" style="display: none; margin-top: 2.5rem; text-align: left;">
+                    <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 1.2rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <p style="margin:0; font-size:0.95rem; color:#1E293B; line-height: 1.5;">👋 처음 오셨거나 승인 대기 중인가요?<br>연결할 <strong>본인의 이름</strong>을 등록해주세요.<br><span style="color:#EF4444; font-size:0.85rem; font-weight:600;">※ 관리자 승인 후 접속 가능</span></p>
+                    </div>
+                    <input type="text" id="user-name" placeholder="이름 입력 (예: 홍길동)" style="letter-spacing: normal; text-align: left;">
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="cancelRegister()" style="background-color: white; color: #1E293B; border: 1px solid #E2E8F0;">취소</button>
+                        <button onclick="registerPin()" style="background-color: #F97316; color: white;">승인 요청하기</button>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 
     <script>
+        let currentPinAttempt = ""; // 실패한 핀 번호를 잠시 기억해두는 변수
+
         async function login() {
             const pin = document.getElementById('user-pin').value;
             const errorMsg = document.getElementById('error-msg');
             const btn = document.getElementById('btn-login');
+            const regSec = document.getElementById('register-section');
 
             if (pin.length !== 4 || isNaN(pin)) {
                 errorMsg.innerText = "⚠️ PIN 번호는 숫자 4자리로 입력해야 합니다.";
@@ -64,6 +96,7 @@
             btn.innerText = "보안 데이터 확인 중...";
             btn.disabled = true;
             errorMsg.style.display = 'none';
+            regSec.style.display = 'none';
 
             try {
                 // 백엔드에 열쇠(PIN)를 보내서 확인 요청
@@ -73,18 +106,57 @@
                     // 통과! 브라우저 금고(Session Storage)에 열쇠를 몰래 숨겨둠
                     sessionStorage.setItem('tjpharm_auth_key', pin);
                     
-                    // 사내 업무 데스크로 화면 이동 (가짜 전환이 아닌 진짜 페이지 이동)
+                    // 사내 업무 데스크로 화면 이동
                     window.location.href = 'app.html';
                 } else {
                     throw new Error("Unauthorized");
                 }
             } catch (error) {
-                // 백엔드에서 쫓겨남 (401 에러)
-                errorMsg.innerText = "⚠️ 미등록 PIN이거나 권한이 없습니다.";
+                // 백엔드에서 거절당하면 가입(승인 요청) 창을 띄워줍니다.
+                currentPinAttempt = pin; 
+                errorMsg.innerHTML = "⚠️ 미등록 PIN이거나 <b>승인 대기 중</b>입니다.";
                 errorMsg.style.display = 'block';
                 btn.innerText = "입장하기";
                 btn.disabled = false;
+                
+                // 등록 폼 보여주기
+                regSec.style.display = 'block';
             }
+        }
+
+        // 🌟 신규 권한 승인 요청 함수 복구
+        async function registerPin() {
+            const name = document.getElementById('user-name').value.trim();
+            if (!name) {
+                alert("이름을 입력해주세요.");
+                return;
+            }
+
+            try {
+                // 입력한 이름과 방금 튕겼던 PIN 번호를 백엔드로 전송 (승인 대기 상태로 저장됨)
+                const res = await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=addPin', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ pin: currentPinAttempt, name: name, approved: false }) 
+                });
+                
+                if (res.ok) {
+                    alert(`✅ [${name}]님 승인 요청이 완료되었습니다.\\n관리자 승인 후 로그인해주세요.`);
+                    cancelRegister();
+                } else {
+                    alert("❌ 등록에 실패했습니다. 다시 시도해주세요.");
+                }
+            } catch (e) {
+                alert("❌ 통신 오류가 발생했습니다.");
+            }
+        }
+
+        // 등록 폼 숨기기
+        function cancelRegister() {
+            document.getElementById('user-pin').value = "";
+            document.getElementById('user-name').value = "";
+            document.getElementById('register-section').style.display = 'none';
+            document.getElementById('error-msg').style.display = 'none';
         }
     </script>
 </body>
