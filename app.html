@@ -1090,7 +1090,7 @@
             if (userData && isTrue(userData.approved)) {
                 currentUser = userData.name;
             } else {
-                currentUser = "관리자"; 
+                currentUser = "김정욱"; 
             }
 
             setupUserEnvironment(); 
@@ -1258,7 +1258,8 @@
 
         // 사용자 환경 초기화 (기존 showApp을 대신함)
         function setupUserEnvironment() {
-            if (SUPER_ADMINS.includes(currentUser) || currentUser === "관리자") {
+            // 👇 '김정욱'은 이미 SUPER_ADMINS에 있으므로, 이 조건 하나면 충분합니다.
+            if (SUPER_ADMINS.includes(currentUser)) {
                 btnSidebar.classList.remove('hidden'); 
             } else {
                 btnSidebar.classList.add('hidden');
