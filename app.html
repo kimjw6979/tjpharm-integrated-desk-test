@@ -960,7 +960,7 @@
         let pins = [];
         
         let currentUser = ""; 
-        let currentPin = ""; 
+        let currentPin = sessionStorage.getItem('tjpharm_auth_key'); // 👈 브라우저 금고에서 열쇠 꺼내기
         let currentPage = 1; 
         let currentTab = 'order'; 
         let autoRefreshTimer = null; 
@@ -1064,15 +1064,36 @@
             showToast("📥 엑셀 업로드 양식 다운로드 완료"); 
         };
 
-      window.addEventListener('load', () => { 
-            // 창은 즉시 보여줍니다.
-            const loginForm = document.querySelector('.login-form-container');
-            if (loginForm) loginForm.classList.add('show');
+      window.addEventListener('load', async () => { 
+            // 🚨 문지기 로직: 브라우저 금고에 열쇠(PIN)가 없으면 인트로 페이지로 강제 추방!
+            if (!currentPin) {
+                alert("정상적인 로그인 절차를 거쳐주세요.");
+                window.location.href = 'index.html'; 
+                return;
+            }
+
+            // 열쇠가 있다면 숨겨져 있던 메인 화면(app-section)을 보여줌
+            document.getElementById('app-section').classList.remove('hidden');
             
-            // 👇 페이지 접속 시 바로 데이터를 불러오지 않고, 로그인 창 입력을 활성화합니다.
-            document.getElementById('user-pin').disabled = false;
-            document.getElementById('btn-login').disabled = false;
-            document.getElementById('btn-login').innerText = "입장하기";
+            // 백엔드에 열쇠를 보내 데이터를 불러옵니다.
+            const success = await loadAllData(true, currentPin);
+            
+            // 열쇠가 틀렸거나 만료되어 거부당하면 다시 쫓아냄
+            if (!success) {
+                sessionStorage.removeItem('tjpharm_auth_key');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // 불러온 핀 목록(DB)과 대조하여 내 이름 찾기
+            const userData = pins.find(p => String(p.pin).trim() === String(currentPin).trim());
+            if (userData && isTrue(userData.approved)) {
+                currentUser = userData.name;
+            } else {
+                currentUser = "관리자"; 
+            }
+
+            setupUserEnvironment(); 
         });
 
         // 🌟 탭 전환 로직 🌟
@@ -1231,49 +1252,51 @@
             resetPageAndRender();
         }
 
-        // 로그인 관련 함수들
-        const elLoginWrapper = document.getElementById('login-wrapper'); 
+        // 로그인 관련 요소
         const elAppSec = document.getElementById('app-section'); 
-        const elRegSec = document.getElementById('register-section'); 
         const btnSidebar = document.getElementById('btn-show-sidebar');
 
-        async function login() {
-            const pin = document.getElementById('user-pin').value;
-            if (pin.length !== 4 || isNaN(pin)) return showToast("⚠️ PIN 번호는 반드시 숫자 4자리로 입력해야 합니다.", true);
-            
-            document.getElementById('btn-login').innerText = "데이터 확인 중...";
-            document.getElementById('btn-login').disabled = true;
-
-            currentPin = pin; 
-            
-            // 👇 입력한 핀 번호를 백엔드에 열쇠(key)로 보내 확인합니다.
-            const success = await loadAllData(false, pin);
-            
-            if (success) { 
-                // 일반 사용자 명단에 있는지 확인
-                const userData = pins.find(p => String(p.pin).trim() === String(pin).trim());
-                
-                if (userData && isTrue(userData.approved)) {
-                    currentUser = userData.name;
-                } else {
-                    // 명단에 없는데 백엔드가 통과시켰다면 마스터(관리자) 핀임! (6979 노출 완벽 제거)
-                    currentUser = "김정욱"; 
-                }
-                showApp(); 
+        // 사용자 환경 초기화 (기존 showApp을 대신함)
+        function setupUserEnvironment() {
+            if (SUPER_ADMINS.includes(currentUser) || currentUser === "관리자") {
+                btnSidebar.classList.remove('hidden'); 
             } else {
-                // 백엔드가 거절 (미등록 핀이거나 비밀번호 틀림)
-                document.getElementById('btn-login').innerText = "입장하기";
-                document.getElementById('btn-login').disabled = false;
-                document.getElementById('register-section').classList.remove('hidden');
+                btnSidebar.classList.add('hidden');
             }
+            
+            document.getElementById('welcome-msg').innerHTML = `✅ 인증 완료! 환영합니다, <strong>${currentUser}</strong>님`;
+            document.getElementById('i-reg').value = currentUser;
+            
+            const userData = pins.find(p => p.pin === currentPin);
+            const userTabs = (userData && userData.tabs) ? userData.tabs.split(',') : ['order', 'desig', 'oos'];
+            
+            document.getElementById('tab-order').style.display = userTabs.includes('order') ? 'block' : 'none';
+            document.getElementById('tab-desig').style.display = userTabs.includes('desig') ? 'block' : 'none';
+            document.getElementById('tab-oos').style.display = userTabs.includes('oos') ? 'block' : 'none';
+            document.getElementById('tab-season').style.display = 'block';
+
+            const tabContainer = document.getElementById('main-tab-container');
+            let displayTabs = [...userTabs];
+            if (!displayTabs.includes('season')) displayTabs.push('season');
+            displayTabs.forEach(tab => {
+                const tabBtn = document.getElementById(`tab-${tab}`);
+                if (tabBtn) tabContainer.appendChild(tabBtn);
+            });
+
+            if (userTabs.includes('order')) switchTab('order'); 
+            else if (userTabs.includes('desig')) switchTab('desig'); 
+            else if (userTabs.includes('oos')) switchTab('oos'); 
+            else switchTab('season');
+            
+            fetchNews();
+            if (!autoRefreshTimer) autoRefreshTimer = setInterval(() => { loadAllData(true, currentPin); }, 15000);
         }
 
+        // 로그아웃: 금고를 비우고 인트로 페이지로 쫓아냄
         function logout() {
-            currentUser = ""; currentPin = ""; document.getElementById('user-pin').value = "";
-            elAppSec.classList.add('hidden'); btnSidebar.classList.add('hidden');
-            elLoginWrapper.classList.remove('hidden'); elRegSec.classList.add('hidden');
-            setTimeout(() => { elLoginWrapper.style.opacity = '1'; }, 10);
+            sessionStorage.removeItem('tjpharm_auth_key'); // 브라우저 금고 비우기
             if (autoRefreshTimer) { clearInterval(autoRefreshTimer); autoRefreshTimer = null; }
+            window.location.href = 'index.html'; 
         }
 
         // 🌟 완벽 업그레이드된 실시간 뉴스 필터 로직 🌟
