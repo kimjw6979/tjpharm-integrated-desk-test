@@ -1280,13 +1280,16 @@
             const success = await loadAllData(false, pin);
             
             if (success) { 
-                // 백엔드가 데이터를 줬다 = 등록된 PIN이 맞다!
-                if (pin === "6979") { 
-                    currentUser = "김정욱"; 
+                // 1. 일반 승인 사용자 명단에서 검색
+                const userData = pins.find(p => String(p.pin).trim() === String(pin).trim());
+                
+                if (userData && isTrue(userData.approved)) {
+                    currentUser = userData.name;
                 } else {
-                    const userData = pins.find(p => String(p.pin).trim() === String(pin).trim());
-                    if (userData && isTrue(userData.approved)) currentUser = userData.name;
+                    // 2. 명단에 없는데 백엔드가 통과시켰다면? -> 마스터 열쇠임! (숫자 노출 안됨)
+                    currentUser = "김정욱"; 
                 }
+                
                 showApp(); 
             } else {
                 // 백엔드가 거절했다 = 미등록이거나 승인대기 상태
