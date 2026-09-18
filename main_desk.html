@@ -1085,12 +1085,19 @@
                 return;
             }
 
-            // 불러온 핀 목록(DB)과 대조하여 내 이름 찾기
-            const userData = pins.find(p => String(p.pin).trim() === String(currentPin).trim());
-            if (userData && isTrue(userData.approved)) {
-                currentUser = userData.name;
+            // 🌟 1순위: 마스터 핀(6979)으로 접속하면 DB 무시하고 무조건 '김정욱'으로 강제 고정!
+            if (String(currentPin).trim() === "6979") {
+                currentUser = "김정욱";
             } else {
-                currentUser = "김정욱"; 
+                // 2순위: 일반 사용자는 DB 목록에서 찾기
+                const userData = pins.find(p => String(p.pin).trim() === String(currentPin).trim());
+                if (userData && isTrue(userData.approved)) {
+                    currentUser = userData.name;
+                    // 혹시 DB에 예전 이름인 '관리자'로 남아있더라도 '김정욱'으로 변환
+                    if (currentUser === "관리자") currentUser = "김정욱";
+                } else {
+                    currentUser = "김정욱"; 
+                }
             }
 
             setupUserEnvironment(); 
