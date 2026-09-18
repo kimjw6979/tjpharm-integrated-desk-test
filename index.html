@@ -102,8 +102,11 @@
                 const res = await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=getAll&key=' + pin);
                 
                 if (res.ok) {
+                    // 통과! 브라우저 금고(Session Storage)에 열쇠를 몰래 숨겨둠
                     sessionStorage.setItem('tjpharm_auth_key', pin);
-                    window.location.href = 'app.html';
+                    
+                    // 사내 업무 데스크로 화면 이동 (새로 변경된 파일 이름 적용)
+                    window.location.href = 'main_desk.html';
                 } else if (res.status === 403) {
                     // 🌟 403 에러: 등록은 했으나 아직 승인 안 됨 -> 중복 등록창 숨김
                     errorMsg.innerHTML = "⏳ <b>승인 대기 중</b>입니다. 관리자 승인을 기다려주세요.";
