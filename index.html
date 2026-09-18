@@ -99,28 +99,34 @@
             regSec.style.display = 'none';
 
             try {
-                // 백엔드에 열쇠(PIN)를 보내서 확인 요청
                 const res = await fetch('https://tjpharm2038-api-test.yellowcuppy.workers.dev/?action=getAll&key=' + pin);
                 
                 if (res.ok) {
-                    // 통과! 브라우저 금고(Session Storage)에 열쇠를 몰래 숨겨둠
                     sessionStorage.setItem('tjpharm_auth_key', pin);
+                    window.location.href = 'app.html';
+                } else if (res.status === 403) {
+                    // 🌟 403 에러: 등록은 했으나 아직 승인 안 됨 -> 중복 등록창 숨김
+                    errorMsg.innerHTML = "⏳ <b>승인 대기 중</b>입니다. 관리자 승인을 기다려주세요.";
+                    errorMsg.style.display = 'block';
+                    regSec.style.display = 'none'; // 👈 이미 등록했으니 폼을 숨깁니다!
                     
-                    // 사내 업무 데스크로 화면 이동
-                    window.location.href = 'main_desk.html';
+                    btn.innerText = "입장하기";
+                    btn.disabled = false;
                 } else {
-                    throw new Error("Unauthorized");
+                    // 🌟 401 등 기타 에러: 아예 처음 보는 핀 번호 -> 등록창 오픈
+                    currentPinAttempt = pin; 
+                    errorMsg.innerHTML = "⚠️ 미등록 PIN 입니다. 아래에서 승인 요청을 진행해주세요.";
+                    errorMsg.style.display = 'block';
+                    regSec.style.display = 'block'; // 👈 처음 왔으니 등록 폼 열어주기!
+                    
+                    btn.innerText = "입장하기";
+                    btn.disabled = false;
                 }
             } catch (error) {
-                // 백엔드에서 거절당하면 가입(승인 요청) 창을 띄워줍니다.
-                currentPinAttempt = pin; 
-                errorMsg.innerHTML = "⚠️ 미등록 PIN이거나 <b>승인 대기 중</b>입니다.";
+                errorMsg.innerHTML = "❌ 서버 통신 오류가 발생했습니다.";
                 errorMsg.style.display = 'block';
                 btn.innerText = "입장하기";
                 btn.disabled = false;
-                
-                // 등록 폼 보여주기
-                regSec.style.display = 'block';
             }
         }
 
